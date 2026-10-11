@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tape">
+<meta name="theme-color" content="#14171C">
+<meta name="robots" content="noindex">
+<title>Tape</title>
+<style>
+:root{--bg:#14171C;--card:#1C2128;--line:#2B323B;--tx:#E8E6E1;--mute:#9AA3AD;--up:#5BC489;--down:#E5645A;--sand:#D9C7A0}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums}
+main{max-width:480px;margin:0 auto;padding:max(env(safe-area-inset-top),16px) 16px 96px}
+h1{font-size:18px;margin:0 0 12px}
+.card{background:var(--card);border-radius:10px;padding:12px;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mute{color:var(--mute);font-size:13px}.up{color:var(--up)}.down{color:var(--down)}.sand{color:var(--sand)}
+.big{font-size:26px;font-weight:600}
+input[type=text],input:not([type]){width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--tx);padding:10px;font-size:16px}
+input:focus{outline:none;border-color:var(--sand)}
+.btn{display:inline-block;background:var(--sand);color:var(--bg);border:0;border-radius:8px;padding:10px 12px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer}
+.ghost{background:none;border:1px solid var(--line);color:var(--tx)}
+.link{background:none;border:0;color:var(--down);font-size:13px;cursor:pointer;padding:6px 0}
+.acts{display:flex;gap:8px;margin-top:8px;align-items:center}
+.gap{display:flex;gap:8px;margin-bottom:8px}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:0;color:var(--mute);padding:16px 2px;font-size:13px}
+nav button.on{color:var(--sand);font-weight:600}
+.err{color:var(--down);font-size:13px;margin-bottom:10px}
+summary{cursor:pointer;font-size:14px}
+label.r{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;margin-bottom:8px}
+label.r input{width:110px}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav id="nav"></nav>
+<script>
+"use strict";
+const SOL = "So11111111111111111111111111111111111111112";
+const DEFAULT_RULES = { maxMcap: 5000000, minLiq: 20000, minSpike: 3, requireSafe: true, sellDropPct: -25, walletMinSol: 5 };
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+const S = {
+  tab: "scan", err: "", busy: false,
+  key: LS.get("key", ""), wallets: LS.get("wallets", []), fomo: LS.get("fomo", ""),
+  holdings: LS.get("holdings", []), entries: LS.get("entries", {}),
+  rules: Object.assign({}, DEFAULT_RULES, LS.get("rules", {})), snaps: LS.get("snaps", {}),
+  rows: [], events: [], synced: [], alerts: []
+};
+const persist = () => ["key","wallets","fomo","holdings","entries","rules","snaps"].forEach(k => LS.set(k, S[k]));
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const ADDR = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+const usd = n => n >= 1e6 ? "$" + (n/1e6).toFixed(2) + "M" : n >= 1e3 ? "$" + (n/1e3).toFixed(1) + "K" : "$" + Number(n).toFixed(n < 1 ? 6 : 2);
+const pct = n => `<span class="${n >= 0 ? "up" : "down"}">${n >= 0 ? "+" : ""}${Number(n).toFixed(1)}%</span>`;
+const short = a => a.slice(0, 5) + "…" + a.slice(-5);
+
+async function getJSON(url) {
+  try { const r = await fetch(url); if (!r.ok) return null; return await r.json(); } catch { return null; }
+}
+
+// ---------- data ----------
+async function getTrending() {
+  const j = await getJSON("https://api.dexscreener.com/token-boosts/top/v1");
+  if (!Array.isArray(j)) return null;
+  return [...new Set(j.filter(t => t.chainId === "solana").map(t => t.tokenAddress))];
+}
+async function getTokens(mints) {
+  const list = [...new Set(mints)], best = new Map();
+  for (let i = 0; i < list.length; i += 30) {
+    const j = await getJSON("https://api.dexscreener.com/latest/dex/tokens/" + list.slice(i, i + 30).join(","));
+    for (const p of (j && j.pairs) || []) {
+      if (p.chainId !== "solana") continue;
+      const m = p.baseToken.address, cur = best.get(m);
+      if (!cur || (p.liquidity?.usd ?? 0) > (cur.liquidity?.usd ?? 0)) best.set(m, p);
+    }
+  }
+  return [...best.values()].map(p => ({
+    mint: p.baseToken.address, symbol: p.baseToken.symbol, price: Number(p.priceUsd ?? 0),
+    mcap: p.marketCap ?? p.fdv ?? 0, liq: p.liquidity?.usd ?? 0, vol1h: p.volume?.h1 ?? 0, vol24h: p.volume?.h24 ?? 0,
+    chg1h: p.priceChange?.h1 ?? 0, chg24h: p.priceChange?.h24 ?? 0
+  }));
+}
+const safetyCache = new Map();
+async function rugCheck(mint) {
+  const c = safetyCache.get(mint);
+  if (c && Date.now() - c.t < 300000) return c.v;
+  const j = await getJSON(`https://api.rugcheck.xyz/v1/tokens/${mint}/report`);
+  let v = null;
+  if (j) {
+    // RugCheck normalised score: higher = riskier
+    const score = Number(j.score_normalised ?? j.score ?? 0);
+    const mintRevoked = !j.mintAuthority, freezeRevoked = !j.freezeAuthority;
+    const lp = Math.max(0, ...(j.markets || []).map(m => m.lp?.lpLockedPct ?? 0));
+    const top10 = (j.topHolders || []).slice(0, 10).reduce((s, h) => s + (h.pct ?? 0), 0);
+    let verdict = "ok";
+    if (score >= 50 || !mintRevoked || !freezeRevoked) verdict = "danger";
+    else if (score >= 25 || lp < 50 || top10 > 40) verdict = "caution";
+    v = { score, mintRevoked, freezeRevoked, lp, top10, verdict };
+  }
+  safetyCache.set(mint, { t: Date.now(), v });
+  return v;
+}
+async function getBalances(addr) {
+  const j = await getJSON(`https://api.helius.xyz/v0/addresses/${addr}/balances?api-key=${encodeURIComponent(S.key)}`);
+  if (!j) return null;
+  const out = (j.tokens || []).map(t => ({ mint: t.mint, amount: Number(t.amount) / 10 ** (t.decimals ?? 0) })).filter(t => t.amount > 0);
+  const sol = Number(j.nativeBalance ?? 0) / 1e9;
+  if (sol > 0.01) out.push({ mint: SOL, amount: sol });
+  return out;
+}
+async function getSwaps(addr) {
+  const j = await getJSON(`https://api.helius.xyz/v0/addresses/${addr}/transactions?api-key=${encodeURIComponent(S.key)}&type=SWAP&limit=10`);
+  if (!Array.isArray(j)) return [];
+  return j.map(t => {
+    const s = t.events?.swap, b = s?.nativeInput, o = s?.nativeOutput;
+    return { sig: t.signature, wallet: addr, ts: t.timestamp, desc: t.description || "",
+      side: b ? "bought" : o ? "sold" : "swapped", sol: Number(b?.amount ?? o?.amount ?? 0) / 1e9,
+      mint: b ? s?.tokenOutputs?.[0]?.mint : s?.tokenInputs?.[0]?.mint };
+  });
+}
+
+// ---------- signals ----------
+const spike = t => t.vol1h / Math.max(t.vol24h / 24, 1);
+function evaluate(rows, events, r) {
+  const out = [];
+  for (const t of rows) {
+    const safe = !r.requireSafe || (t.safety && t.safety.verdict !== "danger");
+    if (t.mcap && t.mcap <= r.maxMcap && t.liq >= r.minLiq && spike(t) >= r.minSpike && t.chg1h > 0 && safe)
+      out.push({ id: "b:" + t.mint, kind: "buy", mint: t.mint, text: `${t.symbol}: volume ${spike(t).toFixed(1)}x normal, +${t.chg1h}% in 1h` });
+    if (t.chg1h <= r.sellDropPct) out.push({ id: "s:" + t.mint, kind: "sell", mint: t.mint, text: `${t.symbol}: ${t.chg1h}% in 1h` });
+  }
+  for (const e of events) if (e.sol >= r.walletMinSol)
+    out.push({ id: "w:" + e.sig, kind: "wallet", mint: e.mint, text: `${short(e.wallet)} ${e.side} ${e.sol.toFixed(1)} SOL` });
+  return out;
+}
+// Phantom/Solflare have no public pre-filled swap link, so these open Jupiter inside the wallet's browser.
+function links(mint, side) {
+  const jup = side === "sell" ? `https://jup.ag/swap/${mint}-${SOL}` : `https://jup.ag/swap/${SOL}-${mint}`;
+  const u = encodeURIComponent(jup), ref = encodeURIComponent(location.origin);
+  return `<div class="acts"><a class="btn" href="https://phantom.app/ul/browse/${u}?ref=${ref}">${side === "sell" ? "Sell" : "Buy"} in Phantom</a>
+  <a class="btn ghost" href="https://solflare.com/ul/v1/browse/${u}?ref=${ref}">Solflare</a></div>`;
+}
+
+// ---------- refresh ----------
+const seen = new Set();
+async function refresh() {
+  if (S.busy) return; S.busy = true; S.err = "";
+  try {
+    let sy = [];
+    if (S.fomo) {
+      if (!S.key) S.err = "Add your Helius key in Setup to sync your Fomo wallet.";
+      else { const b = await getBalances(S.fomo); if (b) sy = b; else S.err = "Couldn't read your Fomo wallet. Check the address and Helius key."; }
+    }
+    S.synced = sy;
+    const trending = await getTrending();
+    if (!trending) S.err = S.err || "Couldn't load trending tokens. Your browser may be blocking the data source.";
+    const mine = await getTokens([...S.holdings.map(h => h.mint), ...sy.map(s => s.mint)]);
+    const hot = await getTokens(trending || []);
+    const trendSet = new Set(trending || []);
+    const rows = [...mine.map(t => ({ ...t })), ...hot.filter(h => !mine.some(m => m.mint === h.mint))].map(t => ({ ...t, trending: trendSet.has(t.mint) }));
+    await Promise.all(rows.filter(t => t.trending).slice(0, 12).map(async t => { t.safety = await rugCheck(t.mint); }));
+    S.rows = rows;
+    let ev = [];
+    if (S.wallets.length && S.key) ev = (await Promise.all(S.wallets.map(getSwaps))).flat().sort((a, b) => b.ts - a.ts);
+    S.events = ev;
+    const fresh = evaluate(rows.filter(t => t.trending), ev, S.rules);
+    S.alerts = [...fresh.filter(a => !S.alerts.some(p => p.id === a.id)), ...S.alerts].slice(0, 50);
+    for (const a of fresh) if (!seen.has(a.id)) {
+      seen.add(a.id);
+      try { if (typeof Notification !== "undefined" && Notification.permission === "granted") new Notification("Tape", { body: a.text }); } catch {}
+    }
+    const v = portfolio().value, day = new Date().toISOString().slice(0, 10);
+    if (v > 0) { S.snaps[day] = v; persist(); }
+  } catch (e) { S.err = "Something went wrong. Pull to refresh in a minute."; }
+  S.busy = false; render();
+}
+
+// ---------- views ----------
+const price = m => S.rows.find(r => r.mint === m)?.price ?? 0;
+function portfolio() {
+  const all = [
+    ...S.synced.map(s => ({ mint: s.mint, symbol: S.rows.find(r => r.mint === s.mint)?.symbol ?? s.mint.slice(0, 4), amount: s.amount, entry: S.entries[s.mint] ?? 0, idx: -1 })),
+    ...S.holdings.map((h, idx) => ({ ...h, idx }))
+  ].filter(x => x.idx >= 0 || x.amount * price(x.mint) >= 1); // hides dust and airdrop spam
+  const value = all.reduce((s, x) => s + x.amount * price(x.mint), 0);
+  const priced = all.filter(x => x.entry > 0);
+  const basis = priced.reduce((s, x) => s + x.amount * x.entry, 0);
+  const pnl = priced.reduce((s, x) => s + x.amount * (price(x.mint) - x.entry), 0);
+  return { all, value, basis, pnl };
+}
+function viewScan() {
+  const t = S.rows.filter(r => r.trending);
+  return `<h1>Trending on Solana</h1>` + (t.length ? t.map(x => `<div class="card">
+    <div class="row"><b>${esc(x.symbol)}</b><span>${usd(x.price)}</span></div>
+    <div class="row mute" style="margin-top:4px"><span>MC ${usd(x.mcap)} · Liq ${usd(x.liq)}</span><span>${pct(x.chg1h)} 1h · ${spike(x).toFixed(1)}x vol</span></div>
+    ${x.safety ? `<p class="mute" style="margin:8px 0 0"><b class="${x.safety.verdict === "ok" ? "up" : x.safety.verdict === "danger" ? "down" : "sand"}">${x.safety.verdict}</b> · risk ${x.safety.score} · mint ${x.safety.mintRevoked ? "revoked" : "<b class=down>ACTIVE</b>"} · freeze ${x.safety.freezeRevoked ? "revoked" : "<b class=down>ACTIVE</b>"} · LP locked ${x.safety.lp.toFixed(0)}% · top10 ${x.safety.top10.toFixed(0)}%</p>` : `<p class="mute" style="margin:8px 0 0">No safety report available</p>`}
+    ${links(x.mint, "buy")}</div>`).join("") : `<p class="mute">${S.busy ? "Loading…" : "Nothing loaded yet."}</p>`);
+}
+function viewWallets() {
+  return `<h1>Tracked wallets</h1>
+  ${S.key ? "" : `<p class="err">Add your Helius key in Setup first.</p>`}
+  <div class="gap"><input id="wIn" placeholder="Wallet address"><button class="btn" data-act="addWallet">Add</button></div>
+  ${S.wallets.map((a, i) => `<div class="card row"><span class="mute">${short(a)}</span><button class="link" data-act="rmWallet" data-i="${i}">Remove</button></div>`).join("")}
+  ${S.events.map(e => `<div class="card"><div>${esc(e.desc || `${e.side} ${e.sol.toFixed(2)} SOL`)}</div>
+    <div class="mute">${new Date(e.ts * 1000).toLocaleString()}</div>${e.mint && e.side === "bought" ? links(e.mint, "buy") : ""}</div>`).join("")}
+  ${S.wallets.length ? "" : `<p class="mute">Paste a wallet address to follow its recent swaps.</p>`}`;
+}
+function viewFolio() {
+  const p = portfolio();
+  return `<h1>Portfolio</h1>
+  <div class="card"><div class="big">${usd(p.value)}</div><div class="mute">${p.basis > 0 ? `PnL on holdings with an entry price: ${usd(p.pnl)} ${pct(p.pnl / p.basis * 100)}` : "Add entry prices below to see PnL"}</div></div>
+  <div class="card"><b>Fomo wallet</b>
+    ${S.fomo ? `<div class="row" style="margin-top:6px"><span class="mute">${short(S.fomo)} · synced</span><button class="link" data-act="rmFomo">Disconnect</button></div>`
+    : `<p class="mute">Paste the public Solana address from your Fomo account. Never paste a seed phrase or private key.</p>
+    <div class="gap"><input id="fIn" placeholder="Solana address"><button class="btn" data-act="addFomo">Connect</button></div>`}</div>
+  ${p.all.map(x => { const pr = price(x.mint); return `<div class="card"><div class="row"><b>${esc(x.symbol)}</b><span>${usd(x.amount * pr)}</span></div>
+    <div class="row mute" style="margin-top:4px"><span>${x.entry > 0 ? pct((pr - x.entry) / x.entry * 100) + " since entry" : "No entry price"}</span>
+    ${x.idx < 0 ? `<input style="width:110px" inputmode="decimal" placeholder="Entry $" value="${x.entry || ""}" data-entry="${esc(x.mint)}">` : ""}</div>
+    <div class="acts">${links(x.mint, "sell").replace('<div class="acts">', "<span>").replace(/<\/div>$/, "</span>")}${x.idx >= 0 ? `<button class="link" data-act="rmHolding" data-i="${x.idx}">Remove</button>` : ""}</div></div>`; }).join("")}
+  <details class="card"><summary>Add a holding by hand</summary><div style="margin-top:10px">
+    <div class="gap"><input id="hMint" placeholder="Token mint"></div>
+    <div class="gap"><input id="hAmt" inputmode="decimal" placeholder="Amount"><input id="hEnt" inputmode="decimal" placeholder="Entry price $"></div>
+    <button class="btn" data-act="addHolding">Add holding</button></div></details>
+  ${(() => { const d = Object.keys(S.snaps).sort().slice(-8); return d.length > 1 ? `<div class="card"><b>Daily value</b> <span class="mute">(recorded when the app is open)</span>${d.map((k, i) => `<div class="row mute"><span>${k}</span><span>${usd(S.snaps[k])} ${i ? pct((S.snaps[k] - S.snaps[d[i-1]]) / S.snaps[d[i-1]] * 100) : ""}</span></div>`).join("")}</div>` : ""; })()}`;
+}
+function viewAlerts() {
+  return `<h1>Alerts</h1>
+  <div class="card">${[["maxMcap","Max market cap ($)"],["minLiq","Min liquidity ($)"],["minSpike","Min volume spike (x)"],["sellDropPct","Sell if 1h change ≤ (%)"],["walletMinSol","Wallet move ≥ (SOL)"]].map(([k, l]) =>
+    `<label class="r"><span>${l}</span><input inputmode="decimal" value="${S.rules[k]}" data-rule="${k}"></label>`).join("")}
+    <label class="r"><span>Only tokens that pass safety checks</span><input type="checkbox" style="width:auto" ${S.rules.requireSafe ? "checked" : ""} data-rule="requireSafe"></label></div>
+  ${S.alerts.map(a => `<div class="card"><b class="${a.kind === "sell" ? "down" : "up"}">${a.kind}</b> · ${esc(a.text)}${a.mint ? links(a.mint, a.kind === "sell" ? "sell" : "buy") : ""}</div>`).join("")}
+  ${S.alerts.length ? "" : `<p class="mute">Nothing has matched your rules yet. Alerts check every minute while this app is open.</p>`}`;
+}
+function viewSetup() {
+  return `<h1>Setup</h1>
+  <div class="card"><b>Helius key</b><p class="mute">Needed for wallet tracking and your Fomo wallet. Free at dashboard.helius.dev. It is saved only on this phone.</p>
+    <div class="gap"><input id="kIn" placeholder="Paste key" value="${esc(S.key)}"><button class="btn" data-act="saveKey">Save</button></div></div>
+  <div class="card"><b>Notifications</b><p class="mute">Alerts always show in the Alerts tab. Pop-up notifications work only on some phones and need the app open.</p>
+    <button class="btn ghost" data-act="notif">Allow notifications</button></div>
+  <div class="card mute">Signals are simple volume and price rules, and safety checks reduce risk but never prove a token is safe. This is not financial advice.</div>`;
+}
+const TABS = [["scan","Scan"],["wallets","Wallets"],["folio","Portfolio"],["alerts","Alerts"],["setup","Setup"]];
+function render() {
+  if (document.activeElement && document.activeElement.tagName === "INPUT") return; // don't wipe what you're typing
+  const v = { scan: viewScan, wallets: viewWallets, folio: viewFolio, alerts: viewAlerts, setup: viewSetup }[S.tab]();
+  document.getElementById("app").innerHTML = (S.err ? `<p class="err">${esc(S.err)}</p>` : "") + v;
+  document.getElementById("nav").innerHTML = TABS.map(([k, l]) => `<button data-tab="${k}" class="${S.tab === k ? "on" : ""}">${l}${k === "alerts" && S.alerts.length ? " (" + S.alerts.length + ")" : ""}</button>`).join("");
+}
+
+// ---------- events ----------
+document.addEventListener("click", e => {
+  const tb = e.target.closest("[data-tab]");
+  if (tb) { S.tab = tb.dataset.tab; render(); window.scrollTo(0, 0); return; }
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const v = id => (document.getElementById(id)?.value || "").trim(), i = Number(b.dataset.i);
+  switch (b.dataset.act) {
+    case "addWallet": { const a = v("wIn"); if (!ADDR.test(a)) { S.err = "That doesn't look like a Solana address."; } else { S.err = ""; if (!S.wallets.includes(a)) S.wallets.push(a); persist(); refresh(); } break; }
+    case "rmWallet": S.wallets.splice(i, 1); persist(); break;
+    case "addFomo": { const a = v("fIn"); if (!ADDR.test(a)) S.err = "That doesn't look like a Solana address."; else { S.err = ""; S.fomo = a; persist(); refresh(); } break; }
+    case "rmFomo": S.fomo = ""; S.synced = []; persist(); break;
+    case "addHolding": { const m = v("hMint"), amt = parseFloat(v("hAmt")), ent = parseFloat(v("hEnt")) || 0;
+      if (!ADDR.test(m) || !(amt > 0)) S.err = "Enter a valid token mint and amount."; else { S.err = ""; S.holdings.push({ mint: m, symbol: S.rows.find(r => r.mint === m)?.symbol ?? m.slice(0, 4), amount: amt, entry: ent }); persist(); refresh(); } break; }
+    case "rmHolding": S.holdings.splice(i, 1); persist(); break;
+    case "saveKey": S.key = v("kIn"); persist(); S.err = ""; refresh(); break;
+    case "notif": try { Notification.requestPermission(); } catch { S.err = "This browser doesn't support notifications."; } break;
+  }
+  document.activeElement && document.activeElement.blur(); render();
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.dataset.rule) { const k = t.dataset.rule; S.rules[k] = k === "requireSafe" ? t.checked : (Number(t.value) || 0); persist(); refresh(); }
+  if (t.dataset.entry) { S.entries[t.dataset.entry] = Number(t.value) || 0; persist(); t.blur(); render(); }
+});
+render(); refresh(); setInterval(refresh, 60000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+</script>
+</body>
+</html>
