@@ -1,0 +1,11 @@
+import readline from "node:readline/promises";
+import fs from "node:fs";
+import os from "node:os";
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+console.log("Free Helius key: sign up at https://dashboard.helius.dev and copy your API key.\n");
+const key = (await rl.question("Helius API key: ")).trim();
+const pw = (await rl.question("Password to lock the app (recommended, Enter to skip): ")).trim();
+fs.writeFileSync(".env.local", `HELIUS_API_KEY=${key}\n${pw ? `APP_PASSWORD=${pw}\n` : ""}`);
+const ip = Object.values(os.networkInterfaces()).flat().find((i) => i && i.family === "IPv4" && !i.internal)?.address;
+console.log(`\nSaved. Now run: npm run dev\nOn your phone (same Wi-Fi): http://${ip ?? "your-computer-ip"}:3000`);
+rl.close();
