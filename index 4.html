@@ -1,0 +1,1332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tape">
+<meta name="theme-color" content="#0A0C0F">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Tape</title>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js" defer></script>
+<style>
+:root{--bg:#0A0C0F;--card:#13171C;--line:#222831;--tx:#F2F4F6;--mute:#7C8794;--up:#5BF29B;--down:#FF5C6C;--sand:#E6C97A}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums}
+header{display:flex;justify-content:space-between;align-items:center;max-width:480px;margin:0 auto;padding:max(env(safe-area-inset-top),14px) 16px 6px}
+.logo{font-size:22px;font-weight:700;letter-spacing:-.5px}
+.hr{display:flex;gap:6px}
+.ic{position:relative;width:40px;height:40px;border-radius:50%;border:0;background:var(--card);color:var(--tx);display:grid;place-items:center;cursor:pointer;flex:none}
+.ic.sm{width:34px;height:34px}
+.ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ic.sm svg{width:16px;height:16px}
+.badge{position:absolute;top:-2px;right:-2px;background:var(--up);color:#06150C;border-radius:9px;font-size:11px;font-weight:700;padding:1px 5px}
+main{max-width:480px;margin:0 auto;padding:4px 16px 100px}
+.sub{color:var(--mute);font-size:13px;margin:2px 0 12px}
+.tok{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:12px;margin-bottom:8px;cursor:pointer}
+.av{position:relative;width:44px;height:44px;border-radius:50%;background:#1E252D;display:grid;place-items:center;font-weight:700;color:var(--mute);flex:none;overflow:hidden}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mid{flex:1;min-width:0}.mid b{font-size:16px}
+.rt{text-align:right}
+.mute{color:var(--mute);font-size:13px}.up{color:var(--up)}.down{color:var(--down)}.sand{color:var(--sand)}
+.pill{display:inline-block;border-radius:8px;padding:2px 8px;font-size:13px;font-weight:600}
+.pill.up{background:rgba(91,242,155,.12)}.pill.down{background:rgba(255,92,108,.12)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:6px;vertical-align:middle}
+.card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:8px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.big{font-size:34px;font-weight:700;letter-spacing:-1px}
+.pad{padding:24px 0;text-align:center}
+.btn{display:inline-block;background:var(--up);color:#06150C;border:0;border-radius:14px;padding:14px 16px;font-size:16px;font-weight:700;text-align:center;text-decoration:none;cursor:pointer}
+.btn.ghost{background:var(--card);color:var(--tx)}
+.btn.sm{padding:10px 14px;font-size:14px;border-radius:10px}
+.link{background:none;border:0;color:var(--down);font-size:13px;cursor:pointer;padding:4px 0}
+input[type=text],input[type=password],input:not([type]){width:100%;background:var(--bg);border:1px solid var(--line);border-radius:12px;color:var(--tx);padding:12px;font-size:16px}
+input:focus{outline:none;border-color:var(--sand)}
+.gap{display:flex;gap:8px;margin-top:8px}
+.sw{width:46px;height:28px;border-radius:14px;border:0;background:#2A323B;position:relative;flex:none;cursor:pointer}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.15s}
+.sw.on{background:var(--up)}.sw.on::after{left:21px}
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(10,12,15,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;max-width:160px;background:none;border:0;color:var(--mute);padding:15px 4px;font-size:14px;font-weight:600}
+nav button.on{color:var(--tx)}
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:10;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet>.in{max-width:480px;margin:0 auto;padding:max(env(safe-area-inset-top),12px) 16px 120px}
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sh b{font-size:18px;flex:1}
+#chart{height:360px;border-radius:14px;overflow:hidden;background:var(--bg)}
+#chart iframe{width:100%;height:360px;border:0}
+.tf{display:flex;gap:6px;margin:0 0 8px;align-items:center}
+.chip{background:var(--card);border:0;color:var(--mute);border-radius:10px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.chip.on{background:#222831;color:var(--tx)}
+.seg{display:flex;background:var(--card);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;background:none;border:0;color:var(--mute);padding:9px 4px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer}
+.seg button.on{background:#222831;color:var(--tx)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.grid .card{margin:0}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:10px}
+.cal .h{text-align:center;color:var(--mute);font-size:11px;padding-bottom:2px}
+.cd{border-radius:10px;min-height:58px;padding:5px;background:#101419;font-size:11px;color:#59626D;cursor:pointer;overflow:hidden}
+.cd.sel{outline:1.5px solid var(--sand)}
+.cd b{display:block;font-size:11px;margin-top:7px;font-weight:600;color:var(--tx);white-space:nowrap}
+.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(10,12,15,.95);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:11}
+.bar>div{max-width:480px;margin:0 auto;display:flex;gap:8px}
+.bar .btn{flex:1}
+.err{color:var(--down);font-size:13px;margin:0 0 10px}
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#fff;color:#000;padding:10px 14px;border-radius:12px;font-size:14px;z-index:20;display:none;max-width:90%}
+label.r{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;margin-bottom:8px}
+label.r input{width:110px}
+h2{font-size:15px;margin:18px 0 8px}
+.plan{font-size:13px;color:var(--mute);margin-top:6px}
+.score{display:inline-block;background:rgba(91,242,155,.12);color:var(--up);border-radius:8px;padding:2px 8px;font-size:13px;font-weight:700}
+#cstat{margin:6px 0 0}
+.livebar{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:18px;padding:14px;margin-bottom:12px}
+.pulse{width:12px;height:12px;border-radius:50%;background:var(--up);flex:none;animation:pl 1.6s infinite}
+.pulse.slow{background:var(--sand);animation:none}
+@keyframes pl{0%{box-shadow:0 0 0 0 rgba(91,242,155,.55)}70%{box-shadow:0 0 0 11px rgba(91,242,155,0)}100%{box-shadow:0 0 0 0 rgba(91,242,155,0)}}
+#banner{position:fixed;left:0;right:0;top:0;z-index:30;display:none;padding:0 12px}
+#banner .b{max-width:480px;margin:max(env(safe-area-inset-top),8px) auto 0;padding:13px 14px;background:#E9FFF3;color:#06150C;border-radius:18px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 28px rgba(0,0,0,.55);cursor:pointer}
+#banner .b.sell{background:#FFE9EC;color:#2A0A0F}
+#lock{position:fixed;inset:0;background:var(--bg);z-index:50;display:none;align-items:center;justify-content:center;padding:24px}
+#lock .in{width:100%;max-width:360px}
+.tok{padding:14px;border-radius:18px}
+.av{width:48px;height:48px}
+details summary{color:var(--mute);font-size:13px;cursor:pointer;padding:6px 0}
+#chart svg{display:block;width:100%}
+.lnks{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.lnk{background:#1B2128;color:var(--tx);text-decoration:none;border-radius:10px;padding:7px 11px;font-size:13px}
+.tag{display:inline-block;background:#222831;color:var(--mute);border-radius:8px;padding:1px 7px;font-size:12px;margin-left:6px}
+</style>
+</head>
+<body>
+<header><div class="logo">Tape</div><div class="hr" id="hr"></div></header>
+<main id="app"></main>
+<nav id="nav"></nav>
+<div id="sheet"></div>
+<div id="toast"></div>
+<div id="banner"></div>
+<div id="lock"></div>
+<script>
+"use strict";
+const SOL = "So11111111111111111111111111111111111111112";
+const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", USDT = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
+const DEFAULT_RULES = { maxMcap: 1000000, minLiq: 10000, minScore: 75, stopPct: -22, priorityFee: 100000, minAge: 5 };
+const RETAIN_DAYS = 7;
+const MODES = {
+  safe:     { label: "Safe",     maxMcap: 1000000, minLiq: 10000, minScore: 75, minAge: 5, stopPct: -22, tp: null },
+  balanced: { label: "Balanced", maxMcap: 500000,  minLiq: 6000,  minScore: 65, minAge: 3, stopPct: -28, tp: 3 },
+  moonshot: { label: "Moonshot", maxMcap: 150000,  minLiq: 3000,  minScore: 55, minAge: 2, stopPct: -35, tp: 6 }
+};
+let autoMode = { cur: "safe", pend: "", n: 0 };
+const modeNow = () => (S.opts.mode && S.opts.mode !== "auto" && MODES[S.opts.mode]) ? S.opts.mode : autoMode.cur;
+const RR = () => Object.assign({}, S.rules, { ...MODES[modeNow()], priorityFee: S.rules.priorityFee });
+// Reads the market from coins we already track: SOL trend and how many new coins are rising with buyers ahead.
+function readMarket() {
+  const c = S.rows.filter(t => t.cand && t.liq > 2000); if (c.length < 8) return;
+  const up = c.filter(t => t.chg1h > 0 && t.chg5m > 0 && t.b1 > t.s1).length / c.length;
+  const sol = S.rows.find(r => r.mint === SOL)?.chg24h ?? 0;
+  const want = (sol < -5 || up < 0.25) ? "safe" : (up > 0.5 && sol > 0) ? "moonshot" : "balanced";
+  if (want === autoMode.cur) { autoMode.pend = ""; autoMode.n = 0; return; }
+  if (want === autoMode.pend) autoMode.n++; else { autoMode.pend = want; autoMode.n = 1; }
+  if (autoMode.n >= 3) { autoMode.cur = want; autoMode.pend = ""; autoMode.n = 0; if (S.opts.mode === "auto" || !S.opts.mode) notify(`Market looks ${want === "safe" ? "weak: switching to Safe mode" : want === "moonshot" ? "hot: switching to Moonshot mode" : "mixed: switching to Balanced mode"}.`, "info", ""); }
+}
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  remove(k) { try { localStorage.removeItem(k); } catch {} }
+};
+const KEYS = { key: "key", fomo: "fomo", entries: "entries", rules: "rules2", snaps: "snaps", watch: "watch", trades: "trades", syms: "syms", histBefore: "histBefore", histDone: "histDone", calls: "calls", pool: "pool", checks: "checks", arch: "arch", basis: "basis", archCut: "archCut", follow: "follow", scouts: "scouts", opts: "opts" };
+const D = () => ({ key: "", fomo: "", entries: {}, rules: { ...DEFAULT_RULES }, snaps: {}, watch: {}, trades: [], syms: {}, histBefore: "", histDone: false, calls: {}, pool: {}, checks: {},
+  arch: { byDay: {}, tot: { pnl: 0, n: 0, cb: 0, wins: 0, best: 0 } }, basis: {}, archCut: 0, follow: {}, scouts: {}, opts: { sound: true, awake: true, mode: "auto" } });
+const now0 = new Date();
+const S = {
+  tab: "snipes", ftab: "hold", hf: "all", sheet: null, err: "", busy: false, syncing: false, solUsd: 0, slow: false, lastScan: 0,
+  ...(() => { const d = D(); if (!LS.get("vault", null)) for (const k in KEYS) d[k] = LS.get(KEYS[k], d[k]); d.rules = Object.assign({}, DEFAULT_RULES, d.rules); d.opts = Object.assign({ sound: true, awake: true, mode: "auto" }, d.opts); return d; })(),
+  scan: { n: 0, ok: 0, passed: 0, rejected: 0 }, checkWhy: {}, rej: {},
+  cal: { y: now0.getFullYear(), m: now0.getMonth(), sel: null },
+  rows: [], synced: [], img: "", launches: [], log: [], unseen: 0, fmoves: {}
+};
+
+// ---------- privacy: encrypted storage (AES-256-GCM, key derived from your passphrase with PBKDF2) ----------
+const VK = { key: null, salt: "" };
+const te = new TextEncoder(), td = new TextDecoder();
+const b64 = u => { let x = ""; for (let i = 0; i < u.length; i += 0x8000) x += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(x); };
+const unb64 = x => Uint8Array.from(atob(x), c => c.charCodeAt(0));
+async function deriveKey(pass, salt) {
+  const base = await crypto.subtle.importKey("raw", te.encode(pass), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 310000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+}
+const hasVault = () => !!LS.get("vault", null);
+function persistPlain() { for (const k in KEYS) LS.set(KEYS[k], S[k]); }
+let vaultTimer = null;
+function persist() {
+  if (VK.key) { clearTimeout(vaultTimer); vaultTimer = setTimeout(flushVault, 400); return; }
+  if (!hasVault()) persistPlain();   // never write plaintext while a vault exists
+}
+async function flushVault() {
+  if (!VK.key) return; clearTimeout(vaultTimer);
+  const snap = {}; for (const k in KEYS) snap[k] = S[k];
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, VK.key, te.encode(JSON.stringify(snap))));
+  LS.set("vault", { v: 1, salt: VK.salt, iv: b64(iv), ct: b64(ct) });
+}
+async function enableVault(pass) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  VK.salt = b64(salt); VK.key = await deriveKey(pass, salt);
+  await flushVault(); for (const k in KEYS) LS.remove(KEYS[k]);
+}
+async function disableVault() { VK.key = null; VK.salt = ""; persistPlain(); LS.remove("vault"); }
+async function tryUnlock(pass) {
+  const v = LS.get("vault", null); if (!v) return false;
+  try {
+    const salt = unb64(v.salt), key = await deriveKey(pass, salt);
+    const obj = JSON.parse(td.decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(v.iv) }, key, unb64(v.ct))));
+    VK.key = key; VK.salt = v.salt; for (const k in KEYS) if (obj[k] !== undefined) S[k] = obj[k];
+    S.rules = Object.assign({}, DEFAULT_RULES, S.rules); S.opts = Object.assign({ sound: true, awake: true, mode: "auto" }, S.opts);
+    return true;
+  } catch { return false; }
+}
+function showLock() {
+  const el = $("lock"); el.style.display = "flex";
+  el.innerHTML = `<div class="in"><div class="logo" style="margin-bottom:6px">Tape</div><p class="mute">Enter your passphrase to unlock.</p>
+    <div class="gap"><input id="lockPw" type="password" placeholder="Passphrase" autocomplete="current-password"></div>
+    <div class="gap"><button class="btn" style="flex:1" data-act="unlock">Unlock</button></div><p id="lockErr" class="err" style="margin-top:10px"></p>
+    <button class="link" data-act="erase">Forgot it? Erase all data on this phone</button></div>`;
+}
+async function doUnlock() {
+  const pw = $("lockPw")?.value || "";
+  if (await tryUnlock(pw)) { $("lock").style.display = "none"; $("lock").innerHTML = ""; startApp(); }
+  else { await new Promise(r => setTimeout(r, 800)); const e = $("lockErr"); if (e) e.textContent = "Wrong passphrase."; }
+}
+function resetState() {
+  Object.assign(S, D(), { rows: [], synced: [], launches: [], log: [], unseen: 0, fmoves: {}, rej: {}, checkWhy: {}, scan: { n: 0, ok: 0, passed: 0, rejected: 0 }, sheet: null, img: "", err: "" });
+  safetyCache.clear(); legitCache.clear(); infoCache.clear(); for (const k in REP) delete REP[k]; analyze.k = null;
+  const b = $("banner"); if (b) b.style.display = "none"; badge();
+}
+async function lockApp() { await flushVault(); stopTimers(); VK.key = null; VK.salt = ""; resetState(); renderSheet(); $("app").innerHTML = ""; $("nav").innerHTML = ""; showLock(); }
+function eraseAll() { for (const k in KEYS) LS.remove(KEYS[k]); LS.remove("vault"); try { location.reload(); } catch {} }
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const ADDR = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+const px = n => { n = Number(n); if (!(n > 0)) return "0.00"; return n >= 1 ? n.toFixed(2) : n.toFixed(Math.min(12, Math.max(2, 3 - Math.floor(Math.log10(n))))); };
+const usd = n => n >= 1e6 ? "$" + (n/1e6).toFixed(2) + "M" : n >= 1e3 ? "$" + (n/1e3).toFixed(1) + "K" : "$" + px(n);
+const fmt = n => n >= 1e6 ? (n/1e6).toFixed(2) + "M" : n >= 1e4 ? (n/1e3).toFixed(1) + "K" : n >= 100 ? n.toFixed(0) : n.toFixed(2);
+const sgn = n => (n >= 0 ? "+" : "-") + "$" + fmt(Math.abs(n));
+const fq = n => n >= 1e6 ? (n/1e6).toFixed(2) + "M" : n >= 1e3 ? (n/1e3).toFixed(1) + "K" : n.toFixed(2);
+const pill = n => `<span class="pill ${n >= 0 ? "up" : "down"}">${n >= 0 ? "+" : ""}${Number(n).toFixed(1)}%</span>`;
+const short = a => a.slice(0, 4) + "…" + a.slice(-4);
+const dayKey = ts => { const d = new Date(ts * 1000); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+const row = m => S.rows.find(r => r.mint === m);
+const tokOf = m => row(m) || (S.calls[m] ? { mint: m, symbol: S.calls[m].sym, pair: S.calls[m].pair, img: S.calls[m].img, price: S.calls[m].price, mcap: S.calls[m].mcap, liq: S.calls[m].liq, vol1h: 0, chg1h: 0, chg24h: 0, chg5m: 0, chg6h: 0 } : null);
+const price = m => row(m)?.price ?? 0;
+const sym = m => row(m)?.symbol || S.syms[m]?.s || S.calls[m]?.sym || short(m);
+const ageStr = ms => { const m = Math.max(0, Math.round(ms / 60000)); return m < 60 ? m + "m" : m < 1440 ? Math.round(m / 60) + "h" : Math.round(m / 1440) + "d"; };
+const toast = t => { const e = $("toast"); e.textContent = t; e.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => e.style.display = "none", 4000); };
+const dollars = sol => S.solUsd ? "$" + Math.round(sol * S.solUsd).toLocaleString() : sol.toFixed(1) + " SOL";
+// ---------- alerts: banner that stays until dismissed, sound, vibration, icon badge, system notification ----------
+let AC = null, REG = null, alertSeq = 0;
+function unlockAudio() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); } catch {} }
+function beep() {
+  if (!S.opts.sound || !AC) return;
+  try { [880, 1175].forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f; g.gain.value = 0.18; o.connect(g); g.connect(AC.destination); o.start(AC.currentTime + i * 0.2); o.stop(AC.currentTime + i * 0.2 + 0.15); }); } catch {}
+}
+function badge() { try { if (navigator.setAppBadge) { S.unseen ? navigator.setAppBadge(S.unseen) : navigator.clearAppBadge(); } } catch {} try { document.title = S.unseen ? `(${S.unseen}) Tape` : "Tape"; } catch {} }
+const TITLES = { buy: "New snipe", sell: "Sell signal", trader: "Trader move", wallet: "Wallet move", info: "Tape" };
+function showBanner(a) {
+  const el = $("banner"); if (!el) return;
+  el.innerHTML = `<div class="b ${a.kind === "sell" ? "sell" : ""}" data-act="bn" data-m="${esc(a.mint || "")}"><div style="flex:1"><b>${TITLES[a.kind] || "Tape"}</b><div style="font-size:14px">${esc(a.text)}</div></div><button class="link" data-act="bnx" aria-label="Dismiss" style="color:inherit;font-size:22px">✕</button></div>`;
+  el.style.display = "block";
+}
+function sysNotify(a) {
+  try {
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    const o = { body: a.text, tag: "tape-" + a.id, data: { mint: a.mint || "" } };
+    if (REG && REG.showNotification) REG.showNotification(TITLES[a.kind] || "Tape", o); else new Notification(TITLES[a.kind] || "Tape", o);
+  } catch {}
+}
+function alertUser(a) {
+  a.id = ++alertSeq; a.t = Date.now(); S.log.unshift(a); S.log = S.log.slice(0, 30); S.unseen++;
+  showBanner(a); beep(); try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch {} badge(); sysNotify(a);
+}
+const notify = (text, kind = "info", mint = "") => alertUser({ kind, text, mint });
+let WL = null;
+async function setWake() {
+  try {
+    if (S.opts.awake && navigator.wakeLock && !document.hidden && !WL) { WL = await navigator.wakeLock.request("screen"); WL.addEventListener("release", () => { WL = null; }); }
+    else if (!S.opts.awake && WL) { await WL.release(); WL = null; }
+  } catch {}
+}
+
+async function getJSON(url, signal) { try { const r = await fetch(url, signal ? { signal } : undefined); if (!r.ok) return null; return await r.json(); } catch { return null; } }
+
+// ---------- data: Dexscreener (market facts), GeckoTerminal (new pools + candles), RugCheck, Helius, CoinGecko ----------
+async function getTokens(mints) {
+  const list = [...new Set(mints)], best = new Map(), chunks = [];
+  for (let i = 0; i < list.length; i += 30) chunks.push(list.slice(i, i + 30));
+  const res = await Promise.all(chunks.map(c => getJSON("https://api.dexscreener.com/latest/dex/tokens/" + c.join(","))));
+  for (const j of res) for (const p of (j && j.pairs) || []) {
+    if (p.chainId !== "solana") continue;
+    const m = p.baseToken.address, cur = best.get(m);
+    if (!cur || (p.liquidity?.usd ?? 0) > (cur.liquidity?.usd ?? 0)) best.set(m, p);
+  }
+  return [...best.values()].map(p => ({
+    mint: p.baseToken.address, symbol: p.baseToken.symbol, name: p.baseToken.name || "", pair: p.pairAddress, img: p.info?.imageUrl || "",
+    price: Number(p.priceUsd ?? 0), mcap: p.marketCap ?? p.fdv ?? 0, liq: p.liquidity?.usd ?? 0,
+    vol5m: p.volume?.m5 ?? 0, vol1h: p.volume?.h1 ?? 0, vol6h: p.volume?.h6 ?? 0, vol24h: p.volume?.h24 ?? 0,
+    chg5m: p.priceChange?.m5 ?? 0, chg1h: p.priceChange?.h1 ?? 0, chg6h: p.priceChange?.h6 ?? 0, chg24h: p.priceChange?.h24 ?? 0,
+    b5: p.txns?.m5?.buys ?? 0, s5: p.txns?.m5?.sells ?? 0, b1: p.txns?.h1?.buys ?? 0, s1: p.txns?.h1?.sells ?? 0,
+    created: p.pairCreatedAt || 0, socials: (p.info?.socials?.length || 0) + (p.info?.websites?.length || 0),
+    socialsList: (p.info?.socials || []).map(x => ({ type: x.type, url: x.url })), sites: (p.info?.websites || []).map(x => x.url)
+  }));
+}
+// Polls GeckoTerminal's newest pools every 8s (page 2 and Dexscreener profiles every 30s). Backs off for 20s if rate limited.
+const DISC = { p1: { t: 0, v: [] }, p2: { t: 0, v: [] }, pr: { t: 0, v: [] }, backoff: 0 };
+const gtMints = j => ((j && j.data) || []).map(p => (p.relationships?.base_token?.data?.id || "").replace("solana_", "")).filter(m => ADDR.test(m));
+async function discover() {
+  const now = Date.now(), jobs = []; S.slow = now < DISC.backoff;
+  if (!S.slow) {
+    if (now - DISC.p1.t >= 8000) jobs.push(getJSON("https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1").then(j => { if (j) DISC.p1 = { t: Date.now(), v: gtMints(j) }; else DISC.backoff = Date.now() + 20000; }));
+    if (now - DISC.p2.t >= 30000) jobs.push(getJSON("https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=2").then(j => { if (j) DISC.p2 = { t: Date.now(), v: gtMints(j) }; }));
+  }
+  if (now - DISC.pr.t >= 30000) jobs.push(getJSON("https://api.dexscreener.com/token-profiles/latest/v1").then(j => { DISC.pr = { t: Date.now(), v: (Array.isArray(j) ? j : []).filter(p => p.chainId === "solana" && ADDR.test(p.tokenAddress || "")).map(p => p.tokenAddress) }; }));
+  await Promise.all(jobs);
+  return [...new Set([...DISC.p1.v, ...DISC.p2.v, ...DISC.pr.v])];
+}
+const safetyCache = new Map();
+const sfOf = m => safetyCache.get(m)?.v || null;
+async function rugCheck(mint) {
+  const c = safetyCache.get(mint);
+  if (c && Date.now() - c.t < 300000) return c.v;
+  const j = await getJSON(`https://api.rugcheck.xyz/v1/tokens/${mint}/report`);
+  let v = null;
+  if (j) {
+    const score = Number(j.score_normalised ?? j.score ?? 0); // higher = riskier
+    const mintRevoked = !j.mintAuthority, freezeRevoked = !j.freezeAuthority;
+    const lp = Math.max(0, ...(j.markets || []).map(m => m.lp?.lpLockedPct ?? 0));
+    const top10 = (j.topHolders || []).slice(0, 10).reduce((s, h) => s + (h.pct ?? 0), 0);
+    const holders = (j.topHolders || []).map(h => ({ addr: h.owner || h.address || "", pct: h.pct ?? 0, insider: !!h.insider })).filter(h => ADDR.test(h.addr)).slice(0, 10);
+    const insiders = (j.topHolders || []).filter(h => h.insider).map(h => ({ addr: h.owner || h.address || "", pct: h.pct ?? 0 })).filter(h => ADDR.test(h.addr));
+    let verdict = "ok";
+    if (score >= 50 || !mintRevoked || !freezeRevoked) verdict = "danger";
+    else if (score >= 25 || lp < 50 || top10 > 40) verdict = "caution";
+    v = { score, mintRevoked, freezeRevoked, lp, top10, insiders, holders, verdict };
+  }
+  safetyCache.set(mint, { t: Date.now(), v: v || c?.v || null });
+  return v || c?.v || null;
+}
+async function getBalances(addr) {
+  const j = await getJSON(`https://api.helius.xyz/v0/addresses/${addr}/balances?api-key=${encodeURIComponent(S.key)}`);
+  if (!j) return null;
+  const out = (j.tokens || []).map(t => ({ mint: t.mint, amount: Number(t.amount) / 10 ** (t.decimals ?? 0) })).filter(t => t.amount > 0);
+  const sol = Number(j.nativeBalance ?? 0) / 1e9;
+  if (sol > 0.01) out.push({ mint: SOL, amount: sol });
+  return out;
+}
+async function getSwaps(addr) {
+  const j = await getJSON(`https://api.helius.xyz/v0/addresses/${addr}/transactions?api-key=${encodeURIComponent(S.key)}&type=SWAP&limit=5`);
+  if (!Array.isArray(j)) return [];
+  return j.map(t => {
+    const s = t.events?.swap, b = s?.nativeInput, o = s?.nativeOutput;
+    return { sig: t.signature, wallet: addr, ts: t.timestamp, side: b ? "bought" : o ? "sold" : "swapped",
+      sol: Number(b?.amount ?? o?.amount ?? 0) / 1e9, mint: b ? s?.tokenOutputs?.[0]?.mint : s?.tokenInputs?.[0]?.mint };
+  });
+}
+
+// ---------- legitimacy: social links, bio, copy-cat detection ----------
+const REP = {};
+const infoCache = new Map(), legitCache = new Map();
+const nrm = x => String(x || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+function safeUrl(u) {
+  try { const t = String(u || "").trim(); if (!t) return ""; const x = new URL(/^https?:\/\//i.test(t) ? t : "https://" + t); return (x.protocol === "https:" || x.protocol === "http:") ? x.href : ""; } catch { return ""; }
+}
+function kindOf(u) {
+  let h = ""; try { h = new URL(u).hostname.replace(/^www\./, "").toLowerCase(); } catch {}
+  if (h === "x.com" || h === "twitter.com" || h.endsWith(".twitter.com")) return "x";
+  if (h === "t.me" || h.endsWith("telegram.me") || h.endsWith("telegram.org")) return "tg";
+  if (h.includes("discord")) return "discord";
+  if (h.endsWith("reddit.com")) return "reddit";
+  if (h.endsWith("youtube.com") || h === "youtu.be") return "youtube";
+  if (h.endsWith("tiktok.com")) return "tiktok";
+  if (h.endsWith("instagram.com")) return "instagram";
+  if (h.endsWith("github.com")) return "github";
+  return "web";
+}
+function xParts(u) {
+  try { const segs = new URL(u).pathname.split("/").filter(Boolean), first = (segs[0] || "").toLowerCase();
+    const bad = ["i", "search", "hashtag", "intent", "share", "home", "explore"].includes(first);
+    const handle = !bad && /^[A-Za-z0-9_]{1,15}$/.test(segs[0] || "") ? first : "";
+    return { handle, tweetOnly: bad || segs.map(x => x.toLowerCase()).includes("status") || !handle };
+  } catch { return { handle: "", tweetOnly: true }; }
+}
+async function fetchInfo(m) {
+  const c = infoCache.get(m); if (c && Date.now() - c.t < 600000) return c.v;
+  const j = await getJSON(`https://api.geckoterminal.com/api/v2/networks/solana/tokens/${m}/info`);
+  const a = j?.data?.attributes || null; infoCache.set(m, { t: Date.now(), v: a }); return a;
+}
+function collectLinks(t, info) {
+  const urls = [];
+  for (const x of t.socialsList || []) if (x.url) urls.push(x.url);
+  for (const w of t.sites || []) urls.push(w);
+  if (info) {
+    if (info.twitter_handle) urls.push("https://x.com/" + String(info.twitter_handle).replace(/^@/, ""));
+    if (info.telegram_handle) urls.push("https://t.me/" + String(info.telegram_handle).replace(/^@/, ""));
+    if (info.discord_url) urls.push(info.discord_url);
+    for (const w of info.websites || []) urls.push(w);
+  }
+  const L = { x: null, web: [], tg: "", discord: "", reddit: "", youtube: "", tiktok: "", instagram: "", github: "" }, seen = new Set(), xs = [];
+  for (let u of urls) {
+    u = safeUrl(u); if (!u || seen.has(u)) continue; seen.add(u);
+    const k = kindOf(u);
+    if (k === "x") xs.push({ url: u, ...xParts(u) });
+    else if (k === "web") L.web.push(u);
+    else if (!L[k]) L[k] = u;
+  }
+  L.x = xs.find(x => !x.tweetOnly) || xs[0] || null;
+  return L;
+}
+async function cloneCheck(t, myX) {
+  const qs = [...new Set([t.symbol, t.name].filter(x => x && String(x).length >= 2))].slice(0, 2);
+  const res = await Promise.all(qs.map(q => getJSON("https://api.dexscreener.com/latest/dex/search?q=" + encodeURIComponent(q))));
+  const best = new Map(), nn = nrm(t.name), ns = nrm(t.symbol);
+  for (const j of res) for (const p of (j && j.pairs) || []) {
+    const a = p.baseToken?.address; if (!a || a === t.mint) continue;
+    if (!(nrm(p.baseToken.symbol) === ns || (nn.length >= 3 && nrm(p.baseToken.name) === nn))) continue;
+    const cur = best.get(a); if (!cur || (p.liquidity?.usd || 0) > (cur.liquidity?.usd || 0)) best.set(a, p);
+  }
+  const out = { copies: [], sameX: [], sameTicker: 0 };
+  for (const p of best.values()) {
+    const mc = p.marketCap || p.fdv || 0, liq = p.liquidity?.usd || 0, cr = p.pairCreatedAt || 0;
+    const older = !!(cr && t.created && cr < t.created - 30 * 60e3), bigger = mc > t.mcap * 1.5 || liq > t.liq * 1.5;
+    const tw = (p.info?.socials || []).find(x => x.type === "twitter" || kindOf(safeUrl(x.url)) === "x");
+    const ox = tw ? xParts(safeUrl(tw.url)).handle : "";
+    if (myX && ox && ox === myX) out.sameX.push({ sym: p.baseToken.symbol, chain: p.chainId, mc });
+    if (older || bigger) out.copies.push({ sym: p.baseToken.symbol, chain: p.chainId, mc, older });
+    else out.sameTicker++;
+  }
+  return out;
+}
+// Pass = real X account + a website or Telegram + no older/bigger coin with the same name + X account not shared with another coin.
+async function legit(t) {
+  const c = legitCache.get(t.mint); if (c && Date.now() - c.t < 600000) return c.v;
+  const info = await fetchInfo(t.mint), links = collectLinks(t, info), myX = links.x && !links.x.tweetOnly ? links.x.handle : (links.x?.handle || "");
+  const cl = await cloneCheck(t, myX);
+  const hasX = !!(links.x && !links.x.tweetOnly), hasSite = links.web.length > 0, hasTg = !!links.tg;
+  let reason = "";
+  if (!links.x) reason = "No X (Twitter) account linked";
+  else if (links.x.tweetOnly) reason = "The X link is a tweet or community, not the coin's own account";
+  else if (!hasSite && !hasTg) reason = "No website or Telegram linked";
+  else if (cl.copies.length) reason = `Looks like a copy of ${cl.copies[0].sym}${cl.copies[0].older ? " (launched earlier)" : ""}, ${usd(cl.copies[0].mc)} market cap`;
+  else if (cl.sameX.length) reason = `Uses the same X account as ${cl.sameX[0].sym}`;
+  const v = { links, info, cl, hasX, hasSite, hasTg, pass: !reason, reason };
+  legitCache.set(t.mint, { t: Date.now(), v }); return v;
+}
+const socNames = L => [L.x && !L.x.tweetOnly && "X", L.web.length && "Site", L.tg && "Telegram", L.reddit && "Reddit", L.youtube && "YouTube", L.discord && "Discord"].filter(Boolean);
+function buildItems(t, sf, L) {
+  const it = [], add = (l, x) => it.push({ l, t: x });
+  if (!sf) add("warn", "No safety report available");
+  else {
+    if (sf.mintRevoked && sf.freezeRevoked) add("good", "Mint and freeze authority revoked"); else add("bad", "Mint or freeze authority is still active (the creator can print or freeze tokens)");
+    if (sf.lp >= 90) add("good", `Liquidity locked or burned (${sf.lp.toFixed(0)}%)`); else add("warn", `Only ${sf.lp.toFixed(0)}% of liquidity is locked`);
+    if (sf.top10 > 50) add("bad", `Top 10 wallets hold ${sf.top10.toFixed(0)}%`); else if (sf.top10 > 35) add("warn", `Top 10 wallets hold ${sf.top10.toFixed(0)}%`); else add("good", `Top 10 wallets hold ${sf.top10.toFixed(0)}%`);
+    const ip = (sf.insiders || []).reduce((s, i) => s + i.pct, 0);
+    if (ip > 20) add("bad", `Flagged insiders hold ${ip.toFixed(0)}%`); else if (ip > 8) add("warn", `Flagged insiders hold ${ip.toFixed(0)}%`);
+    if (sf.verdict === "danger") add("bad", "RugCheck rates this high risk");
+  }
+  const x = L.links.x;
+  if (!x) add("bad", "No X (Twitter) account linked");
+  else if (x.tweetOnly) add("bad", "The X link is a tweet or community, not the coin's own account");
+  else {
+    add("good", `X account @${x.handle}`);
+    const h = nrm(x.handle), a = nrm(t.symbol), b = nrm(t.name);
+    if ((a.length >= 3 && h.includes(a)) || (b.length >= 3 && h.includes(b))) add("good", "X handle matches the coin name"); else add("warn", "X handle doesn't match the coin name");
+  }
+  add(L.hasSite ? "good" : "warn", L.hasSite ? "Website linked" : "No website linked");
+  add(L.hasTg ? "good" : "warn", L.hasTg ? "Telegram linked" : "No Telegram linked");
+  const extra = ["reddit", "youtube", "discord", "tiktok", "instagram"].filter(k => L.links[k]); if (extra.length) add("good", "Also linked: " + extra.join(", "));
+  for (const c of L.cl.copies) add("bad", `Looks like a copy of ${c.sym}${c.older ? " (launched earlier)" : ""} on ${c.chain}, ${usd(c.mc)} market cap`);
+  for (const c of L.cl.sameX) add("bad", `Uses the same X account as ${c.sym} on ${c.chain}`);
+  if (!L.cl.copies.length && !L.cl.sameX.length) add("good", "No older or bigger coin with the same name or X account found");
+  if (L.cl.sameTicker > 0) add("warn", `${L.cl.sameTicker} other coin${L.cl.sameTicker > 1 ? "s" : ""} use this name or ticker`);
+  if (t.created && Date.now() - t.created < 3600e3) add("warn", "Under an hour old");
+  return it;
+}
+async function buildReport(m) {
+  const c = REP[m]; if (c && Date.now() - c.t < 600000) return c;
+  let t = tokOf(m);
+  if (!t || !t.created) { const r = await getTokens([m]); if (r[0]) { t = r[0]; if (!row(m)) S.rows.push({ ...r[0] }); } }
+  if (!t) throw new Error("no token");
+  const sf = await rugCheck(m), L = await legit(t), items = buildItems(t, sf, L);
+  const bad = items.filter(i => i.l === "bad").length, warn = items.filter(i => i.l === "warn").length;
+  return REP[m] = { t: Date.now(), verdict: bad ? "avoid" : warn >= 2 ? "risky" : "good", items, L, sf };
+}
+function qcHTML(m) {
+  const R = REP[m]; if (!R) return `<div class="card mute">Checking safety, socials and copy-cats…</div>`;
+  const col = R.verdict === "good" ? "var(--up)" : R.verdict === "avoid" ? "var(--down)" : "var(--sand)";
+  const label = R.verdict === "good" ? "Looks legit, lower risk" : R.verdict === "avoid" ? "Avoid" : "Risky, check it yourself";
+  const c = S.calls[m], why = S.checkWhy[m];
+  return `<div class="card"><b style="color:${col}">${label}</b>${R.items.map(i => `<div class="mute" style="margin-top:4px"><span style="color:${i.l === "good" ? "var(--up)" : i.l === "bad" ? "var(--down)" : "var(--sand)"}">●</span> ${esc(i.t)}</div>`).join("")}
+    ${c ? `<div class="plan">${c.status === "open" ? "Buy signal is active on this coin." : "Signals finished on this coin."}</div>` : (S.checks[m] ? `<div class="plan">${why ? "No buy signal: " + esc(why) : "Watching for a setup. You'll get a buy signal if it qualifies."}</div>` : "")}</div>`;
+}
+function bioHTML(m) {
+  const R = REP[m], t = tokOf(m), L = R?.L.links, d = R?.L.info?.description, sy = t?.symbol || "";
+  const chips = [];
+  const a = (u, l) => chips.push(`<a class="lnk" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(l)}</a>`);
+  if (L) {
+    if (L.x) a(L.x.url, L.x.tweetOnly ? "X (tweet link)" : "X @" + L.x.handle);
+    L.web.slice(0, 2).forEach(u => { let h = u; try { h = new URL(u).hostname.replace(/^www\./, ""); } catch {} a(u, h); });
+    if (L.tg) a(L.tg, "Telegram"); if (L.reddit) a(L.reddit, "Reddit"); if (L.youtube) a(L.youtube, "YouTube");
+    if (L.discord) a(L.discord, "Discord"); if (L.tiktok) a(L.tiktok, "TikTok"); if (L.instagram) a(L.instagram, "Instagram"); if (L.github) a(L.github, "GitHub");
+  }
+  const q = encodeURIComponent, sr = [["X search", `https://x.com/search?q=${q(m)}&f=live`], ["Reddit", `https://www.reddit.com/search/?q=${q(m)}`], ["Google", `https://www.google.com/search?q=${q(sy + " " + m)}`],
+    ["YouTube", `https://www.youtube.com/results?search_query=${q(sy + " solana")}`], ["Solscan", `https://solscan.io/token/${m}`], ["RugCheck", `https://rugcheck.xyz/tokens/${m}`]];
+  return `<div class="card"><b>About</b>
+    ${d ? `<p style="margin:6px 0 0">${esc(String(d).slice(0, 600))}</p>` : `<p class="mute">${R ? "No description published for this coin." : "Loading…"}</p>`}
+    ${chips.length ? `<div class="lnks">${chips.join("")}</div>` : (R ? `<p class="mute">No social links published.</p>` : "")}
+    <p class="mute" style="margin-top:10px">Links come from the coin's creator, so open them with care. Tape can't read X, Reddit or YouTube itself. Use these searches to confirm the real account posted this exact contract address:</p>
+    <div class="lnks">${sr.map(([l, u]) => `<a class="lnk" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${l}</a>`).join("")}</div></div>`;
+}
+async function loadReport(m) {
+  try { await buildReport(m); } catch (e) {}
+  if (S.sheet?.type === "token" && S.sheet.mint === m) { const a = $("qc"), b = $("bio"); if (a) a.innerHTML = qcHTML(m); if (b) b.innerHTML = bioHTML(m); }
+}
+async function evalManual(t) {
+  await rugCheck(t.mint); t.safety = sfOf(t.mint);
+  const f = finalScore(t); let why = "";
+  if (!f.ok) why = f.why || "Doesn't meet the setup rules";
+  else if (f.score < S.rules.minScore) why = `Setup score ${f.score} is below your quality bar (${S.rules.minScore})`;
+  else {
+    const L = await legit(t);
+    if (!L.pass) why = L.reason;
+    else { t.score = f.score; t.reasons = f.reasons; const c = S.calls[t.mint] = makeCall(t, L, true); notify(`BUY ${c.sym} at ${usd(c.mcap)} MC · score ${c.score}. Sell plan: target ${usd(c.tp / c.price * c.mcap)} MC, stop ${((c.stop / c.price - 1) * 100).toFixed(0)}%.`); }
+  }
+  S.checkWhy[t.mint] = why; return why;
+}
+async function runCheck(m) {
+  if (!ADDR.test(m)) { toast("That doesn't look like a Solana address."); return; }
+  toast("Checking…");
+  const r = await getTokens([m]);
+  if (!r.length) { toast("No trading pair found for that address yet."); return; }
+  S.checks[m] = Date.now(); persist();
+  const i = S.rows.findIndex(x => x.mint === m); const t = { ...r[0], cand: false }; if (i >= 0) S.rows[i] = { ...S.rows[i], ...t }; else S.rows.push(t);
+  openSheet({ type: "token", mint: m });
+  await evalManual(row(m)); persist();
+  if (S.sheet?.type === "token" && S.sheet.mint === m && $("qc")) $("qc").innerHTML = qcHTML(m);
+  render();
+}
+
+// ---------- your trade history (read from your wallet's on-chain activity) ----------
+let solSeries = null;
+async function ensureSol() {
+  if (solSeries) return;
+  const j = await getJSON("https://api.coingecko.com/api/v3/coins/solana/market_chart?vs_currency=usd&days=365");
+  solSeries = (j && j.prices) || [];
+}
+function solAt(ts) {
+  if (S.solUsd && Date.now() / 1000 - ts < 3600) return S.solUsd;
+  if (!solSeries || !solSeries.length) return S.solUsd || 0;
+  const ms = ts * 1000; let lo = 0, hi = solSeries.length - 1;
+  while (lo < hi) { const m = (lo + hi) >> 1; if (solSeries[m][0] < ms) lo = m + 1; else hi = m; }
+  const a = solSeries[lo], b = solSeries[Math.max(0, lo - 1)];
+  return Math.abs(a[0] - ms) < Math.abs(b[0] - ms) ? a[1] : b[1];
+}
+// A trade = exactly one non-quote token moved, against USDC/USDT (exact) or SOL (valued at that day's SOL price).
+function parseTrade(tx, w) {
+  const d = {};
+  for (const t of tx.tokenTransfers || []) {
+    const a = Number(t.tokenAmount) || 0;
+    if (t.toUserAccount === w) d[t.mint] = (d[t.mint] || 0) + a;
+    if (t.fromUserAccount === w) d[t.mint] = (d[t.mint] || 0) - a;
+  }
+  let sol = 0;
+  for (const a of tx.accountData || []) if (a.account === w) sol += Number(a.nativeBalanceChange || 0) / 1e9;
+  const stable = (d[USDC] || 0) + (d[USDT] || 0);
+  for (const m of [SOL, USDC, USDT]) delete d[m];
+  const bases = Object.entries(d).filter(([, v]) => Math.abs(v) > 0);
+  if (bases.length !== 1) return null;
+  const [mint, qty] = bases[0];
+  let usdv = 0;
+  if (Math.abs(stable) > 0.01 && Math.sign(stable) !== Math.sign(qty)) usdv = Math.abs(stable);
+  else if (Math.abs(sol) > 0.005 && Math.sign(sol) !== Math.sign(qty)) usdv = Math.abs(sol) * solAt(tx.timestamp);
+  if (!(usdv > 0)) return null;
+  return { sig: tx.signature, ts: tx.timestamp, mint, side: qty > 0 ? "buy" : "sell", qty: Math.abs(qty), usd: usdv };
+}
+async function syncTrades(older) {
+  if (!S.fomo || !S.key) return;
+  S.syncing = true;
+  try {
+    await ensureSol();
+    const first = !S.histBefore && !S.histDone && !older;
+    let before = older ? S.histBefore : "";
+    const known = new Set(S.trades.map(t => t.sig)), fresh = [];
+    for (let p = 0; p < 5; p++) {
+      const txs = await getJSON(`https://api.helius.xyz/v0/addresses/${S.fomo}/transactions?api-key=${encodeURIComponent(S.key)}&limit=100${before ? "&before=" + before : ""}`);
+      if (!Array.isArray(txs)) break;
+      if (!txs.length) { if (older || first) S.histDone = true; break; }
+      let hit = false;
+      for (const tx of txs) {
+        if (known.has(tx.signature)) { hit = true; continue; }
+        known.add(tx.signature);
+        const t = parseTrade(tx, S.fomo); if (t && t.ts > S.archCut) fresh.push(t);
+      }
+      before = txs[txs.length - 1].signature;
+      if (older || first) S.histBefore = before;
+      if (txs.length < 100) { if (older || first) S.histDone = true; break; }
+      if (hit && !older && !first) break;
+    }
+    if (fresh.length) S.trades = [...S.trades, ...fresh];
+    const miss = [...new Set(S.trades.map(t => t.mint))].filter(m => !S.syms[m]);
+    if (miss.length) { for (const t of await getTokens(miss)) S.syms[t.mint] = { s: t.symbol, i: t.img }; for (const m of miss) S.syms[m] ||= { s: short(m), i: "" }; }
+    persist(); pruneState();
+  } catch (e) { /* keep what we have */ }
+  S.syncing = false;
+}
+function analyze() {
+  const k = S.trades.length + ":" + (S.trades[S.trades.length - 1]?.sig || "") + ":" + S.archCut;
+  if (analyze.k === k) return analyze.v;
+  const list = [...S.trades].sort((a, b) => a.ts - b.ts), pos = JSON.parse(JSON.stringify(S.basis || {})), out = [];
+  for (const t of list) {
+    const p = pos[t.mint] ||= { qty: 0, cost: 0 };
+    if (t.side === "buy") { p.qty += t.qty; p.cost += t.usd; out.push({ ...t, pnl: null, pct: null, cb: 0, kq: 0 }); }
+    else {
+      const kq = Math.min(t.qty, p.qty); let pnl = null, pct = null, cb = 0;
+      if (kq > 1e-12 && p.qty > 0) { cb = p.cost * (kq / p.qty); pnl = t.usd * (kq / t.qty) - cb; pct = cb > 0 ? pnl / cb * 100 : null; p.cost -= cb; p.qty -= kq; }
+      out.push({ ...t, pnl, pct, cb, kq });
+    }
+  }
+  const byDay = {}; for (const k in S.arch.byDay) byDay[k] = { ...S.arch.byDay[k] };
+  for (const t of out) if (t.pnl !== null) { const d = byDay[dayKey(t.ts)] ||= { pnl: 0, n: 0, cb: 0 }; d.pnl += t.pnl; d.n++; d.cb += t.cb; }
+  analyze.k = k; analyze.v = { list: out, pos, byDay };
+  return analyze.v;
+}
+// Keeps localStorage light: drops pool coins and raw trades older than 7 days.
+// Old trades are folded into a small summary (daily PnL + open-position cost basis) so Calendar, History totals and entry prices keep working.
+function pruneState() {
+  const t0 = Date.now();
+  for (const m of Object.keys(S.pool)) if (t0 - S.pool[m] > RETAIN_DAYS * 864e5 && !S.calls[m]) delete S.pool[m];
+  const cut = Math.floor(t0 / 1000) - RETAIN_DAYS * 86400, old = S.trades.filter(t => t.ts <= cut);
+  if (!old.length) return;
+  old.sort((a, b) => a.ts - b.ts);
+  const pos = JSON.parse(JSON.stringify(S.basis || {}));
+  for (const t of old) {
+    const p = pos[t.mint] ||= { qty: 0, cost: 0 };
+    if (t.side === "buy") { p.qty += t.qty; p.cost += t.usd; continue; }
+    const kq = Math.min(t.qty, p.qty); if (!(kq > 1e-12 && p.qty > 0)) continue;
+    const cb = p.cost * (kq / p.qty), pnl = t.usd * (kq / t.qty) - cb; p.cost -= cb; p.qty -= kq;
+    const d = S.arch.byDay[dayKey(t.ts)] ||= { pnl: 0, n: 0, cb: 0 }; d.pnl += pnl; d.n++; d.cb += cb;
+    const a = S.arch.tot; a.pnl += pnl; a.n++; a.cb += cb; if (pnl > 0) a.wins++; a.best = Math.max(a.best, pnl);
+  }
+  for (const m of Object.keys(pos)) if (!(pos[m].qty > 1e-9)) delete pos[m];
+  S.basis = pos; S.trades = S.trades.filter(t => t.ts > cut); S.archCut = cut; S.histDone = true; analyze.k = null; persist();
+}
+function resetHistory() { S.trades = []; S.histBefore = ""; S.histDone = false; S.arch = { byDay: {}, tot: { pnl: 0, n: 0, cb: 0, wins: 0, best: 0 } }; S.basis = {}; S.archCut = 0; analyze.k = null; }
+const entryOf = m => S.entries[m] || (() => { const p = analyze().pos[m]; return p && p.qty > 0 ? p.cost / p.qty : 0; })();
+
+function feeHint() {
+  const f = S.rules.priorityFee || 0, sol = f / 1e9;
+  return `${f.toLocaleString()} lamports = ${sol.toFixed(6)} SOL${S.solUsd ? ` (about $${(sol * S.solUsd).toFixed(4)})` : ""}. Tape doesn't send trades, so enter this in Phantom or Jupiter's priority fee setting. A higher fee helps your trade land during congestion but costs more each time.`;
+}
+// ---------- sniper: strict filters, one buy signal and one calculated sell signal per coin ----------
+// Step 1 (market facts only). Returns {ok, score, reasons} or {ok:false, why}.
+function scoreCand(t) {
+  const R = RR(), age = t.created ? (Date.now() - t.created) / 60000 : 0, rs = [], no = why => ({ ok: false, why });
+  if (!t.created || !(t.price > 0)) return no("No trading history yet");
+  if (t.mcap < 15000) return no(`Market cap ${usd(t.mcap)} is under $15K`);
+  if (t.mcap > R.maxMcap) return no(`Market cap ${usd(t.mcap)} is above your max (${usd(R.maxMcap)})`);
+  if (t.liq < R.minLiq) return no(`Liquidity ${usd(t.liq)} is below your minimum (${usd(R.minLiq)})`);
+  if (age < R.minAge) return no(`Under ${R.minAge} minutes old`);
+  if (age > 4320) return no("Older than 3 days, not an early entry");
+  if (t.liq / t.mcap < 0.04) return no("Liquidity is very thin for its market cap");
+  if (t.chg6h < -35) return no("Down more than 35% in 6 hours");
+  if (t.chg1h < -5) return no("Falling in the last hour");
+  if (t.chg1h > 150) return no("Already up more than 150% in the last hour");
+  if (t.b1 < 30) return no("Not enough buying activity yet");
+  if (t.b5 <= t.s5) return no("Sellers are winning in the last 5 minutes");
+  let sc = 0;
+  const bp = t.b1 / Math.max(1, t.s1); sc += Math.max(0, Math.min(25, (bp - 1) * 25)); if (bp >= 1.5) rs.push(`Buyers outnumber sellers ${bp.toFixed(1)}x`);
+  const sp = t.vol1h / Math.max(1, (t.vol6h - t.vol1h) / 5); sc += Math.max(0, Math.min(25, (sp - 1) / 3 * 25)); if (sp >= 2) rs.push(`Volume ${sp.toFixed(1)}x the last hours`);
+  sc += t.mcap <= 150000 ? 15 : t.mcap <= 400000 ? 10 : 5; rs.push(`Low cap ${usd(t.mcap)}`);
+  sc += (t.chg1h >= 8 && t.chg1h <= 60) ? 15 : (t.chg1h >= 0 && t.chg1h < 8) ? 8 : 6;
+  const lr = t.liq / t.mcap; sc += lr >= 0.1 ? 10 : lr >= 0.06 ? 6 : 3;
+  return { ok: true, score: sc, reasons: rs };
+}
+// Step 2 (adds RugCheck). Must pass every safety gate.
+function finalScore(t) {
+  const b = scoreCand(t); if (!b.ok) return b;
+  const sf = t.safety || sfOf(t.mint), no = why => ({ ok: false, why });
+  if (!sf) return no("No safety report available yet");
+  if (!sf.mintRevoked || !sf.freezeRevoked) return no("Mint or freeze authority is still active");
+  if (sf.verdict === "danger") return no("RugCheck rates it high risk");
+  if (sf.top10 > 50) return no(`Top 10 wallets hold ${sf.top10.toFixed(0)}%`);
+  const ip = (sf.insiders || []).reduce((s, i) => s + i.pct, 0); if (ip > 20) return no(`Flagged insiders hold ${ip.toFixed(0)}%`);
+  let sc = b.score; const rs = [...b.reasons, "Mint and freeze revoked"];
+  if (sf.lp >= 90) { sc += 5; rs.push("Liquidity locked or burned"); }
+  if (sf.top10 <= 30) { sc += 3; rs.push(`Top 10 hold ${sf.top10.toFixed(0)}%`); }
+  if (t.socials > 0) { sc += 2; rs.push("Has socials"); }
+  return { ok: true, score: Math.round(sc), reasons: rs };
+}
+const M0 = t => { const m = MODES[modeNow()].tp; return m || Math.min(2, Math.max(1.4, 1.5 + (t.score - 70) / 60)); };
+function makeCall(t, L, manual) {
+  const tp = M0(t), stop = 1 + RR().stopPct / 100, M = MODES[modeNow()];
+  return { mint: t.mint, sym: t.symbol, img: t.img, pair: t.pair, ts: Date.now(), price: t.price, mcap: t.mcap, liq: t.liq, score: t.score, reasons: [...t.reasons, ...(L ? ["Socials verified: " + socNames(L.links).join(", "), "No copy-cat found"] : [])],
+    tp: t.price * tp, stop: t.price * stop, status: "open", manual: !!manual, mode: modeNow(), peak: t.price, soc: L ? socNames(L.links) : [] };
+}
+// The one sell signal: fires once, on the first of these.
+function checkSell(c, t) {
+  const r = t.price / c.price;
+  if (t.liq < 500) return "Liquidity gone, likely rugged";
+  if (c.half && t.price <= (c.peak || c.price) * 0.7) return "Trailing stop hit";
+  if (t.price >= c.tp) return "Target hit";
+  if (t.price <= c.stop) return "Stop hit";
+  if (r >= 1.2 && t.s1 > t.b1 * 1.3 && t.chg5m < 0) return "Momentum fading";
+  if (c.liq > 0 && t.liq < c.liq * 0.65) return "Liquidity dropping";
+  if (Date.now() - c.ts > 864e5 && r < 1.1) return "No move in 24h";
+  return null;
+}
+function insiderMap() {
+  const m = {};
+  for (const [mint, c] of safetyCache) for (const i of c.v?.insiders || []) if (row(mint) || S.calls[mint]) (m[i.addr] ||= []).push({ mint, symbol: sym(mint), pct: i.pct });
+  for (const a of Object.keys(S.watch)) m[a] ||= [];
+  return m;
+}
+
+// ---------- live chart (GeckoTerminal candles + Lightweight Charts, our own layout) ----------
+const CH = { chart: null, candle: null, vol: null, timer: null, tf: "5m", shown: "", mode: "mc", raw: [], mint: null, tok: "base", seq: 0, loadSeq: 0, ctrl: null, tickCtrl: null, loading: false, lines: [], cache: {} };
+const ABORT = Symbol("aborted");
+const sleep = (ms, sig) => new Promise(r => { const t = setTimeout(r, ms); if (sig) sig.addEventListener("abort", () => { clearTimeout(t); r(); }, { once: true }); });
+const TFS = { "1m": ["minute", 1, 60], "5m": ["minute", 5, 300], "15m": ["minute", 15, 900], "1h": ["hour", 1, 3600] };
+const cstat = m => { const e = $("cstat"); if (e) e.textContent = m; };
+async function ensureLib() {
+  if (window.LightweightCharts) return true;
+  await new Promise(res => { const s = document.createElement("script"); s.src = "https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"; s.onload = res; s.onerror = res; document.head.appendChild(s); setTimeout(res, 6000); });
+  return !!window.LightweightCharts;
+}
+async function loadOHLCV(pool, tf, limit, tok, sig) {
+  const key = pool + tf + limit + tok, c = CH.cache[key];
+  if (c && Date.now() - c.t < (limit > 10 ? 20000 : 4000)) return c.v;
+  const [u, a] = TFS[tf];
+  for (let i = 0; i < 3; i++) {
+    if (sig && sig.aborted) return ABORT;
+    const j = await getJSON(`https://api.geckoterminal.com/api/v2/networks/solana/pools/${pool}/ohlcv/${u}?aggregate=${a}&limit=${limit}&currency=usd&token=${tok}`, sig);
+    if (sig && sig.aborted) return ABORT;
+    const l = j?.data?.attributes?.ohlcv_list;
+    if (Array.isArray(l)) { const v = l.map(r => ({ time: r[0], open: +r[1], high: +r[2], low: +r[3], close: +r[4], vol: +r[5] })).sort((x, y) => x.time - y.time); CH.cache[key] = { t: Date.now(), v }; return v; }
+    await sleep(700 * (i + 1), sig);
+  }
+  return sig && sig.aborted ? ABORT : null;
+}
+function destroyChart() {
+  clearInterval(CH.timer); CH.timer = null; CH.seq++; CH.loadSeq++;
+  try { CH.ctrl && CH.ctrl.abort(); CH.tickCtrl && CH.tickCtrl.abort(); } catch {}
+  CH.ctrl = CH.tickCtrl = null;
+  try { CH.chart && CH.chart.remove(); } catch {}
+  CH.chart = CH.candle = CH.vol = null; CH.raw = []; CH.lines = []; CH.loading = false; CH.shown = "";
+}
+function sparkHTML(t) {
+  if (!t || !(t.price > 0)) return `<p class="mute pad">No chart data yet.</p>`;
+  const p = t.price, v = [p / (1 + (t.chg24h || 0) / 100), p / (1 + (t.chg6h || 0) / 100), p / (1 + (t.chg1h || 0) / 100), p / (1 + (t.chg5m || 0) / 100), p];
+  const lo = Math.min(...v), hi = Math.max(...v), up = v[4] >= v[0], col = up ? "#5BF29B" : "#FF5C6C";
+  const pts = v.map((y, i) => `${20 + i * 70},${120 - (hi > lo ? (y - lo) / (hi - lo) : .5) * 100}`).join(" ");
+  return `<svg viewBox="0 0 320 150" role="img" aria-label="Simple price trend"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    ${["24h","6h","1h","5m","now"].map((l, i) => `<text x="${20 + i * 70}" y="144" fill="#7C8794" font-size="11" text-anchor="middle">${l}</text>`).join("")}</svg>
+    <div style="text-align:center;padding-bottom:10px"><button class="btn ghost sm" data-act="chretry">Retry candles</button></div>`;
+}
+function scaleOf() { const t = tokOf(CH.mint); return CH.mode === "mc" && t && t.price > 0 && t.mcap > 0 ? t.mcap / t.price : 1; }
+function applyChart() {
+  if (!CH.candle || !CH.raw.length) return;
+  const k = scaleOf(), last = CH.raw[CH.raw.length - 1].close * k;
+  CH.candle.applyOptions({ priceFormat: { type: "custom", formatter: k > 1 ? (v => usd(v)) : (v => "$" + px(v)), minMove: k > 1 ? 1 : Math.max(1e-12, last / 1e4) } });
+  CH.candle.setData(CH.raw.map(c => ({ time: c.time, open: c.open * k, high: c.high * k, low: c.low * k, close: c.close * k })));
+  CH.vol.setData(CH.raw.map(c => ({ time: c.time, value: c.vol, color: c.close >= c.open ? "rgba(91,242,155,.4)" : "rgba(255,92,108,.4)" })));
+  applyChartMarkers();
+}
+// Markers: the coin's single BUY and single SELL signal, plus your own trades. Lines: sell target and stop while a call is open.
+function applyChartMarkers() {
+  if (!CH.candle || !CH.raw.length) return;
+  const step = TFS[CH.shown || CH.tf][2], first = CH.raw[0].time, lastT = CH.raw[CH.raw.length - 1].time, k = scaleOf(), mk = [], c = S.calls[CH.mint];
+  const snap = ts => Math.max(first, Math.min(lastT, Math.floor(ts / step) * step));
+  if (c) {
+    if (c.ts / 1000 >= first - step) mk.push({ time: snap(c.ts / 1000), position: "belowBar", color: "#5BF29B", shape: "arrowUp", text: "BUY" });
+    if (c.sellTs && c.sellTs / 1000 >= first - step) mk.push({ time: snap(c.sellTs / 1000), position: "aboveBar", color: "#FF5C6C", shape: "arrowDown", text: "SELL" });
+  }
+  for (const t of analyze().list) if (t.mint === CH.mint && t.ts >= first && t.ts <= lastT + step)
+    mk.push({ time: snap(t.ts), position: t.side === "buy" ? "belowBar" : "aboveBar", color: t.side === "buy" ? "#5BF29B" : "#FF5C6C", shape: "circle", text: "You " + usd(t.usd) });
+  mk.sort((a, b) => a.time - b.time);
+  try { CH.candle.setMarkers(mk); } catch {}
+  try { CH.lines.forEach(l => CH.candle.removePriceLine(l)); } catch {}
+  CH.lines = [];
+  if (c && c.status === "open") {
+    try {
+      CH.lines.push(CH.candle.createPriceLine({ price: c.tp * k, color: "#5BF29B", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "Sell target" }));
+      CH.lines.push(CH.candle.createPriceLine({ price: c.stop * k, color: "#FF5C6C", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "Stop" }));
+    } catch {}
+  }
+}
+// Returns true (loaded), false (failed), or null (superseded by a newer request or closed).
+// Each call aborts the previous in-flight request, so rapid timeframe taps never overlap or race.
+async function loadChart(fit) {
+  const t = tokOf(CH.mint); if (!t || !t.pair) return false;
+  try { CH.ctrl && CH.ctrl.abort(); CH.tickCtrl && CH.tickCtrl.abort(); } catch {}
+  const ctrl = CH.ctrl = new AbortController(), my = ++CH.loadSeq, seq = CH.seq, tf = CH.tf;
+  const stale = () => my !== CH.loadSeq || seq !== CH.seq;
+  CH.loading = true; cstat(`Loading ${tf} candles…`);
+  try {
+    let d = await loadOHLCV(t.pair, tf, 300, CH.tok, ctrl.signal);
+    if (d === ABORT || stale()) return null;
+    if (d && d.length && t.price > 0) {
+      const r = d[d.length - 1].close / t.price;
+      if (r > 5 || r < 0.2) {
+        const alt = CH.tok === "base" ? "quote" : "base", d2 = await loadOHLCV(t.pair, tf, 300, alt, ctrl.signal);
+        if (d2 === ABORT || stale()) return null;
+        if (d2 && d2.length) { const r2 = d2[d2.length - 1].close / t.price; if (r2 <= 5 && r2 >= 0.2) { d = d2; CH.tok = alt; } }
+      }
+    }
+    if (stale()) return null;
+    if (!d || !d.length) {
+      if (CH.raw.length) cstat(`Couldn't load ${tf} candles right now. Still showing ${CH.shown}.`);
+      else { destroyChart(); const el = $("chart"); if (el) el.innerHTML = sparkHTML(t); cstat("Candles unavailable right now. Showing a simple price trend."); }
+      return false;
+    }
+    CH.raw = d; CH.shown = tf; applyChart(); if (fit !== false) try { CH.chart.timeScale().fitContent(); } catch {}
+    cstat(`Live · ${tf} candles · updates every 10s`);
+    return true;
+  } finally { if (my === CH.loadSeq) { CH.loading = false; CH.ctrl = null; } }
+}
+async function tickChart() {
+  const t = tokOf(CH.mint); if (!t || !CH.candle || document.hidden || CH.loading || CH.shown !== CH.tf) return;
+  try { CH.tickCtrl && CH.tickCtrl.abort(); } catch {}
+  const ctrl = CH.tickCtrl = new AbortController(), my = CH.loadSeq, tf = CH.tf;
+  const d = await loadOHLCV(t.pair, tf, 3, CH.tok, ctrl.signal);
+  if (d === ABORT || !d || !d.length || !CH.candle || my !== CH.loadSeq || tf !== CH.shown) return;
+  const k = scaleOf();
+  for (const c of d) {
+    const i = CH.raw.findIndex(x => x.time === c.time);
+    if (i >= 0) CH.raw[i] = c; else if (!CH.raw.length || c.time > CH.raw[CH.raw.length - 1].time) CH.raw.push(c); else continue;
+    CH.candle.update({ time: c.time, open: c.open * k, high: c.high * k, low: c.low * k, close: c.close * k });
+    CH.vol.update({ time: c.time, value: c.vol, color: c.close >= c.open ? "rgba(91,242,155,.4)" : "rgba(255,92,108,.4)" });
+  }
+  applyChartMarkers();
+}
+async function mountChart(mint) {
+  destroyChart(); const my = CH.seq; CH.mint = mint; CH.tok = "base";
+  const el = $("chart"), t = tokOf(mint); if (!el) return;
+  if (!t || !t.pair) { el.innerHTML = sparkHTML(t); cstat("No candle data for this token yet."); return; }
+  cstat("Loading chart…");
+  const ok = await ensureLib();
+  if (my !== CH.seq || !$("chart")) return;
+  if (!ok) { el.innerHTML = sparkHTML(t); cstat("Chart library couldn't load. Check your connection and retry."); return; }
+  const LC = window.LightweightCharts;
+  CH.chart = LC.createChart(el, { autoSize: true, height: 360, layout: { background: { color: "#0A0C0F" }, textColor: "#7C8794" },
+    grid: { vertLines: { color: "#141920" }, horzLines: { color: "#141920" } }, rightPriceScale: { borderColor: "#222831" },
+    timeScale: { borderColor: "#222831", timeVisible: true, secondsVisible: false }, crosshair: { mode: 0 } });
+  CH.candle = CH.chart.addCandlestickSeries({ upColor: "#5BF29B", downColor: "#FF5C6C", borderVisible: false, wickUpColor: "#5BF29B", wickDownColor: "#FF5C6C" });
+  CH.vol = CH.chart.addHistogramSeries({ priceFormat: { type: "volume" }, priceScaleId: "" });
+  CH.vol.priceScale().applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
+  await loadChart(true);
+  if (my === CH.seq && CH.candle) CH.timer = setInterval(tickChart, 10000);
+}
+
+// ---------- scan loop: runs every 10 seconds while Tape is open ----------
+async function fillSyms(mints) {
+  const miss = [...new Set(mints)].filter(m => !S.syms[m] && !row(m)); if (!miss.length) return;
+  for (const t of await getTokens(miss)) S.syms[t.mint] = { s: t.symbol, i: t.img };
+  for (const m of miss) S.syms[m] ||= { s: short(m), i: "" };
+}
+async function getTxs(a, n) {
+  const j = await getJSON(`https://api.helius.xyz/v0/addresses/${a}/transactions?api-key=${encodeURIComponent(S.key)}&limit=${n}`);
+  return Array.isArray(j) ? j : [];
+}
+function realized(list) {
+  const pos = {}; let pnl = 0, n = 0, wins = 0, cb = 0, best = 0;
+  for (const t of [...list].sort((a, b) => a.ts - b.ts)) {
+    const p = pos[t.mint] ||= { qty: 0, cost: 0 };
+    if (t.side === "buy") { p.qty += t.qty; p.cost += t.usd; continue; }
+    const kq = Math.min(t.qty, p.qty); if (!(kq > 1e-12 && p.qty > 0)) continue;
+    const c = p.cost * (kq / p.qty), g = t.usd * (kq / t.qty) - c; p.cost -= c; p.qty -= kq; pnl += g; n++; cb += c; if (g > 0) wins++; best = Math.max(best, g);
+  }
+  return { pnl, n, wins, cb, best };
+}
+// Followed traders and wallets you switched on. Alerts only for trades newer than the last one seen.
+async function pollWallets() {
+  const addrs = [...new Set([...Object.keys(S.follow), ...Object.keys(S.watch)])].slice(0, 12);
+  if (!addrs.length || !S.key) return;
+  await ensureSol();
+  const res = await Promise.all(addrs.map(async a => [a, await getTxs(a, 25)])), alerts = [], mints = new Set();
+  for (const [a, txs] of res) {
+    const trades = txs.map(tx => parseTrade(tx, a)).filter(Boolean);
+    S.fmoves[a] = trades.slice(0, 5); trades.forEach(t => mints.add(t.mint));
+    const f = S.follow[a], since = f ? (f.last ?? f.since ?? 0) : (S.watch[a] ?? 0), on = f ? f.on !== false : S.watch[a] !== undefined;
+    let mx = since;
+    for (const t of trades) if (t.ts > since) { mx = Math.max(mx, t.ts); if (on) alerts.push({ a, t }); }
+    if (f) f.last = mx; else if (S.watch[a] !== undefined) S.watch[a] = mx;
+  }
+  await fillSyms([...mints]);
+  for (const { a, t } of alerts.sort((x, y) => x.t.ts - y.t.ts)) {
+    const f = S.follow[a], who = f ? f.name : "Top wallet " + short(a);
+    notify(`${who} ${t.side === "buy" ? "bought" : "sold"} ${usd(t.usd)} of ${sym(t.mint)}`, f ? "trader" : "wallet", t.mint);
+  }
+  persist();
+}
+// Scores wallets found in scanned coins (top holders) by realized profit on their recent trades. Never alerts on its own.
+async function scout() {
+  if (!S.key) return;
+  const now = Date.now(), cands = {};
+  for (const [, c] of safetyCache) for (const h of c.v?.holders || []) if (!S.follow[h.addr]) { const x = cands[h.addr] ||= { ins: false, pct: 0 }; x.ins = x.ins || h.insider; x.pct = Math.max(x.pct, h.pct); }
+  const todo = Object.entries(cands).filter(([a]) => !(S.scouts[a] && now - S.scouts[a].t < 6 * 3600e3)).sort((x, y) => (y[1].ins - x[1].ins) || (y[1].pct - x[1].pct)).slice(0, 2);
+  if (!todo.length) return;
+  await ensureSol();
+  for (const [a, x] of todo) {
+    const trades = (await getTxs(a, 100)).map(tx => parseTrade(tx, a)).filter(Boolean), r = realized(trades);
+    S.scouts[a] = (r.pnl > 0 && r.n >= 3 && trades.length <= 80)
+      ? { t: now, ins: !!x.ins, pnl: r.pnl, n: r.n, wins: r.wins, cb: r.cb, trades: trades.length, mints: [...new Set(trades.map(t => t.mint))].slice(0, 4) }
+      : { t: now };
+    if (S.scouts[a].mints) await fillSyms(S.scouts[a].mints);
+  }
+  S.scouts = Object.fromEntries(Object.entries(S.scouts).sort((a, b) => b[1].t - a[1].t).slice(0, 300)); persist();
+}
+async function refresh(full = true, wallets = true) {
+  if (S.busy || (!VK.key && hasVault())) return; S.busy = true; S.err = "";
+  try {
+    if (full && S.fomo) {
+      if (!S.key) S.err = "Add your Helius key in Settings to sync your Fomo wallet.";
+      else { const b = await getBalances(S.fomo); if (b) S.synced = b; else S.err = "Couldn't read your Fomo wallet. Check the address and key."; }
+    }
+    const sy = S.synced;
+    // 1. discover brand-new coins and start tracking them the moment they appear
+    const found = await discover(), t0 = Date.now();
+    for (const m of found) if (!S.pool[m]) { S.pool[m] = t0; S.launches.unshift({ m, t: t0 }); }
+    S.launches = S.launches.slice(0, 40); pruneState();
+    const cand = Object.keys(S.pool).sort((a, b) => S.pool[b] - S.pool[a]).slice(0, 90);
+    if (!found.length && !cand.length) S.err = S.err || "Couldn't reach the coin scanner. Retrying shortly.";
+    const callMints = Object.values(S.calls).sort((a, b) => b.ts - a.ts).slice(0, 20).map(c => c.mint);
+    // 2. market facts for everything we care about
+    const rows = (await getTokens([SOL, ...sy.map(s => s.mint), ...callMints, ...Object.keys(S.checks), ...cand])).map(t => ({ ...t, cand: !!S.pool[t.mint] }));
+    for (const t of rows) if (t.cand && !S.calls[t.mint]) { const p = scoreCand(t); t.why = p.ok ? "" : p.why; }
+    // 3. strict filters: market gates first, then safety checks on the best few
+    const pre = rows.filter(t => t.cand && !S.calls[t.mint]).map(t => ({ t, p: scoreCand(t) })).filter(x => x.p.ok).sort((a, b) => b.p.score - a.p.score).slice(0, 12);
+    await Promise.all([...pre.map(x => rugCheck(x.t.mint)), ...callMints.slice(0, 6).map(rugCheck)]);
+    let passed = 0;
+    for (const x of pre) { x.t.safety = sfOf(x.t.mint); const f = finalScore(x.t); x.t.score = f.ok ? f.score : 0; x.t.reasons = f.reasons || []; x.t.eligible = !!f.ok; if (!f.ok) x.t.why = f.why || ""; if (f.ok) passed++; }
+    S.rows = rows; S.solUsd = rows.find(r => r.mint === SOL)?.price || S.solUsd; S.scan = { n: cand.length, ok: pre.length, passed };
+    // 4. the one calculated sell signal per open call
+    for (const c of Object.values(S.calls)) if (c.status === "open") {
+      const t = row(c.mint);
+      if (!t || !(t.price > 0)) {
+        if (row(SOL)) { c.miss = (c.miss || 0) + 1; if (c.miss >= 3) { c.status = "closed"; c.sellTs = Date.now(); c.sellPrice = 0; c.sellMcap = 0; c.why = "Pair disappeared, likely rugged"; notify(`SELL ${c.sym}: pair disappeared, likely rugged.`, "sell", c.mint); } }
+        continue;
+      }
+      c.miss = 0; c.peak = Math.max(c.peak || c.price, t.price);
+      if (!c.half && c.tp > c.price * 2.5 && t.price >= c.price * 2) { c.half = true; notify(`TAKE HALF ${c.sym}: up 2x. Sell half to get your money back, the rest rides with a trailing stop.`, "sell", c.mint); }
+      const why = checkSell(c, t);
+      if (why) { c.status = "closed"; c.sellTs = Date.now(); c.sellPrice = t.price; c.sellMcap = t.mcap; c.why = why; notify(`SELL ${c.sym}: ${why} (${t.price >= c.price ? "+" : ""}${((t.price / c.price - 1) * 100).toFixed(0)}% since the buy signal)`, "sell", c.mint); }
+    }
+    // 5. new buy signals: best score first, above your quality bar, legit socials and no copy-cat, max 3 per rolling day, one per coin ever
+    let slots = 3 - Object.values(S.calls).filter(c => !c.manual && c.ts > Date.now() - 864e5).length;
+    for (const t of rows.filter(t => t.eligible && t.score >= RR().minScore && !S.calls[t.mint]).sort((a, b) => b.score - a.score).slice(0, 4)) {
+      if (slots <= 0) break;
+      const L = await legit(t);
+      if (!L.pass) { S.rej[t.mint] = L.reason; continue; }
+      slots--; delete S.rej[t.mint];
+      const c = S.calls[t.mint] = makeCall(t, L);
+      notify(`BUY ${c.sym} at ${usd(c.mcap)} MC · score ${c.score}. Sell plan: target ${usd(c.tp / c.price * c.mcap)} MC, stop ${((c.stop / c.price - 1) * 100).toFixed(0)}%.`, "buy", c.mint);
+    }
+    readMarket();
+    S.scan.rejected = Object.keys(S.rej).filter(m => !S.calls[m]).length;
+    for (const m of Object.keys(S.checks)) { const t = row(m); if (t && !S.calls[m]) await evalManual(t); }
+    persist();
+    S.lastScan = Date.now(); render(); updateLive();
+    if (wallets) await pollWallets();
+    if (full) {
+      await scout(); await syncTrades(false);
+      const v = portfolio().value, day = new Date().toISOString().slice(0, 10);
+      if (v > 0) { S.snaps[day] = v; persist(); }
+    }
+  } catch (e) { S.err = "Something went wrong. Retrying shortly."; }
+  S.busy = false; render(); updateLive();
+}
+
+// ---------- icons / pieces ----------
+const I = {
+  set: '<svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>',
+  back: '<svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>',
+  share: '<svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>'
+};
+const tone = v => v === "ok" ? "var(--up)" : v === "danger" ? "var(--down)" : "var(--sand)";
+function avatar(t) { return `<div class="av">${esc((t.symbol || "?")[0])}${t.img ? `<img src="${esc(t.img)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}</div>`; }
+function walletCard(a, list) {
+  const on = S.watch[a] !== undefined, top = list[0];
+  return `<div class="card"><div class="row"><div style="flex:1;min-width:0;${top ? "cursor:pointer" : ""}" ${top ? `data-open="${esc(top.mint)}"` : ""}>
+    <b>${short(a)}</b><div class="mute">${list.length ? list.slice(0, 3).map(x => `${esc(x.symbol)} ${x.pct.toFixed(1)}%`).join(" · ") : "Not in a scanned coin right now"}</div></div>
+    <button class="sw ${on ? "on" : ""}" data-act="watch" data-a="${a}" aria-label="Notify when this wallet trades"></button></div></div>`;
+}
+function histRow(t) {
+  const s = sym(t.mint), buy = t.side === "buy";
+  return `<div class="tok" data-open="${esc(t.mint)}">${avatar({ symbol: s, img: S.syms[t.mint]?.i })}
+  <div class="mid"><b>${esc(s)}</b> <span class="pill ${buy ? "up" : "down"}">${buy ? "Buy" : "Sell"}</span>
+    <div class="mute">${new Date(t.ts * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · ${fq(t.qty)} @ $${px(t.usd / t.qty)}</div></div>
+  <div class="rt"><div>${usd(t.usd)}</div>${t.pnl !== null ? `<div class="${t.pnl >= 0 ? "up" : "down"}" style="font-size:13px">${sgn(t.pnl)}${t.pct !== null ? ` (${t.pct >= 0 ? "+" : ""}${t.pct.toFixed(0)}%)` : ""}</div>` : `<div class="mute">${buy ? "" : "no cost basis"}</div>`}</div>
+  ${t.pnl !== null ? `<button class="ic sm" data-act="shareTrade" data-s="${esc(t.sig)}" aria-label="Share trade">${I.share}</button>` : ""}</div>`;
+}
+function callCard(c) {
+  const t = row(c.mint), open = c.status === "open", now = open ? (t?.price || c.price) : c.sellPrice, chg = (now / c.price - 1) * 100;
+  const tpPct = (c.tp / c.price - 1) * 100;
+  return `<div class="tok" data-open="${esc(c.mint)}" style="align-items:flex-start">${avatar({ symbol: c.sym, img: c.img })}
+  <div class="mid"><b>${esc(c.sym)}</b> <span class="score">${c.score}</span>${c.manual ? '<span class="tag">your check</span>' : ""}
+    <div class="mute">${open ? "Buy signal" : "Sell signal · " + esc(c.why)} · called at ${usd(c.mcap)} MC · ${new Date(c.ts).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</div>
+    ${c.soc && c.soc.length ? `<div class="plan">Socials: ${esc(c.soc.join(", "))}</div>` : ""}
+    ${open ? `<div class="plan">Sell signal at ${usd(c.tp / c.price * c.mcap)} MC (+${tpPct.toFixed(0)}%) · stop ${((c.stop / c.price - 1) * 100).toFixed(0)}% · or if momentum fades</div>` : ""}</div>
+  <div class="rt">${pill(chg)}<div class="mute">${open ? "now" : "result"}</div></div></div>`;
+}
+
+// ---------- main views ----------
+function portfolio() {
+  const all = S.synced.map(s => ({ mint: s.mint, symbol: row(s.mint)?.symbol ?? s.mint.slice(0, 4), amount: s.amount, entry: entryOf(s.mint) }))
+    .filter(x => x.amount * price(x.mint) >= 1); // hides dust and airdrop spam
+  return { all, value: all.reduce((s, x) => s + x.amount * price(x.mint), 0) };
+}
+function checkCard(m) {
+  const t = tokOf(m), why = S.checkWhy[m], R = REP[m];
+  const tag = R ? (R.verdict === "good" ? `<span class="up">lower risk</span>` : R.verdict === "avoid" ? `<span class="down">avoid</span>` : `<span class="sand">risky</span>`) : "checking";
+  return `<div class="tok" data-open="${esc(m)}">${avatar(t || { symbol: "?" })}<div class="mid"><b>${esc(t?.symbol || short(m))}</b> <span class="mute">${tag}</span>
+    <div class="mute">${why ? "No buy signal: " + esc(why) : "Watching for a setup"}</div></div><button class="link" data-act="rmcheck" data-m="${esc(m)}">Remove</button></div>`;
+}
+function openCard(c) {
+  const t = row(c.mint), chg = ((t?.price || c.price) / c.price - 1) * 100;
+  return `<div class="tok" data-open="${esc(c.mint)}" style="flex-wrap:wrap">${avatar({ symbol: c.sym, img: c.img })}
+  <div class="mid"><b style="font-size:18px">${esc(c.sym)}</b> <span class="score">${c.score}</span>${c.manual ? '<span class="tag">your check</span>' : ""}
+    <div class="mute">Called at ${usd(c.mcap)} MC · ${ageStr(Date.now() - c.ts)} ago${t ? " · now " + usd(t.mcap) : ""}</div></div>
+  <div class="rt">${pill(chg)}</div>
+  <div class="plan" style="flex-basis:100%">Sell at ${usd(c.tp / c.price * c.mcap)} MC (+${((c.tp / c.price - 1) * 100).toFixed(0)}%) · stop ${((c.stop / c.price - 1) * 100).toFixed(0)}% · or if momentum fades${c.soc && c.soc.length ? " · " + esc(c.soc.join(", ")) : ""}</div>
+  <div class="acts" style="flex-basis:100%"><button class="btn" style="flex:1" data-act="fomo" data-m="${esc(c.mint)}">Buy on Fomo</button></div></div>`;
+}
+function launchRow(l) {
+  const t = row(l.m), c = S.calls[l.m];
+  const st = c ? "Snipe called" : S.rej[l.m] ? "Skipped: " + S.rej[l.m] : t ? (t.why ? "Watching: " + t.why : (t.eligible ? "Passed checks" : "Running safety checks")) : "Loading…";
+  return `<div class="tok" data-open="${esc(l.m)}">${avatar(t || { symbol: "?" })}<div class="mid"><b>${esc(t?.symbol || short(l.m))}</b>
+    <div class="mute">${t?.created ? ageStr(Date.now() - t.created) + " old" : "just seen"}${t ? " · MC " + usd(t.mcap) : ""}</div><div class="mute">${esc(st)}</div></div></div>`;
+}
+function viewSnipes() {
+  const calls = Object.values(S.calls).sort((a, b) => b.ts - a.ts), open = calls.filter(c => c.status === "open"), closed = calls.filter(c => c.status !== "open").slice(0, 8);
+  const today = calls.filter(c => !c.manual && c.ts > Date.now() - 864e5).length, wins = closed.filter(c => c.sellPrice > c.price).length;
+  const avg = closed.length ? closed.reduce((s, c) => s + (c.sellPrice / c.price - 1) * 100, 0) / closed.length : 0;
+  const ago = S.lastScan ? Math.max(0, Math.round((Date.now() - S.lastScan) / 1000)) : null, live = ago !== null && ago < 60 && !S.slow;
+  const chk = Object.keys(S.checks).filter(m => !S.calls[m]);
+  return `<div class="livebar"><span class="pulse ${live ? "" : "slow"}"></span><div style="flex:1"><div><b>${live ? "Live" : S.slow ? "Slowed (rate limit)" : "Starting…"}</b> · scanning every 10s · <b>${MODES[modeNow()].label}</b>${S.opts.mode === "auto" ? " (auto)" : ""}</div>
+      <div class="mute">${S.scan.n} coins tracked · ${S.scan.passed} passed checks · ${today}/3 snipes today${ago !== null ? " · " + ago + "s ago" : ""}</div></div></div>
+  <div class="gap" style="margin:0 0 14px"><input id="chkIn" placeholder="Paste a contract address to check"><button class="btn sm" data-act="check">Check</button></div>
+  ${open.length ? open.map(openCard).join("") : `<div class="card pad mute">No open snipes. Tape is watching every new coin and will alert you the moment one qualifies.</div>`}
+  ${chk.length ? `<h2>Your checks</h2>` + chk.map(checkCard).join("") : ""}
+  ${S.log.length ? `<h2>Recent alerts</h2>` + S.log.slice(0, 5).map(a => `<div class="card" ${a.mint ? `data-open="${esc(a.mint)}"` : ""}><b class="${a.kind === "sell" ? "down" : "up"}">${TITLES[a.kind] || "Tape"}</b> · ${esc(a.text)}<div class="mute">${ageStr(Date.now() - a.t)} ago</div></div>`).join("") : ""}
+  <h2>Live launches</h2>${S.launches.length ? S.launches.slice(0, 8).map(launchRow).join("") : `<p class="mute pad">Waiting for new coins…</p>`}
+  ${closed.length ? `<h2>Closed</h2><div class="card mute">${closed.length} closed · ${Math.round(wins / closed.length * 100)}% went up · average ${avg >= 0 ? "+" : ""}${avg.toFixed(0)}%</div>` + closed.map(callCard).join("") : ""}
+  <details class="card"><summary>How Tape picks coins</summary><p class="mute">Every 10 seconds Tape pulls the newest coins, tracks each from the moment it appears, and only calls one when it passes strict market and safety checks, has a real X account, and isn't a copy of another coin. One buy signal and one sell signal per coin, max 3 buy signals a day. It never trades for you, and no filter can promise a coin will pump.</p></details>`;
+}
+function followCard(a) {
+  const f = S.follow[a], m = (S.fmoves[a] || [])[0], on = f.on !== false;
+  return `<div class="card"><div class="row"><div style="flex:1;min-width:0"><b>${esc(f.name)}</b> <span class="mute">${short(a)}</span>
+    <div class="mute">${m ? `${m.side === "buy" ? "Bought" : "Sold"} ${usd(m.usd)} of ${esc(sym(m.mint))} · ${ageStr(Date.now() - m.ts * 1000)} ago` : "No recent trades seen yet"}</div></div>
+    <button class="sw ${on ? "on" : ""}" data-act="ftoggle" data-a="${a}" aria-label="Alerts for this trader"></button></div>
+    <button class="link" data-act="unfollow" data-a="${a}">Stop following</button></div>`;
+}
+function scoutCard(a, x) {
+  const on = S.watch[a] !== undefined;
+  return `<div class="card"><div class="row"><div style="flex:1;min-width:0"><b>${short(a)}</b>${x.ins ? '<span class="tag">insider flag</span>' : ""}
+    <div class="mute up">${sgn(x.pnl)} realized · ${x.wins} of ${x.n} sells in profit</div><div class="mute">${x.mints.map(m => esc(sym(m))).join(", ")}</div></div>
+    <div style="display:flex;align-items:center;gap:10px"><a class="lnk" href="https://solscan.io/account/${a}" target="_blank" rel="noopener noreferrer">Solscan</a>
+    <button class="sw ${on ? "on" : ""}" data-act="watch" data-a="${a}" aria-label="Alert when this wallet trades"></button></div></div></div>`;
+}
+function viewWallets() {
+  const fol = Object.keys(S.follow);
+  const sc = Object.entries(S.scouts).filter(([a, x]) => x.pnl > 0 && !S.follow[a]).sort((a, b) => b[1].pnl - a[1].pnl).slice(0, 15);
+  return `<div class="card"><b>Follow a trader</b>${S.key ? "" : `<p class="err">Add your Helius key in Settings first.</p>`}
+    <div class="gap"><input id="fuName" placeholder="Their Fomo username"></div>
+    <div class="gap"><input id="fuAddr" placeholder="Their wallet address"><button class="btn sm" data-act="follow">Follow</button></div>
+    <p class="mute" style="margin-top:8px">Fomo doesn't let apps look up a username, so paste their Solana wallet address. You get an alert when they buy or sell.</p></div>
+  ${fol.length ? `<h2>Following</h2>` + fol.map(followCard).join("") : ""}
+  <h2>Top earners Tape found</h2>
+  <p class="mute" style="margin:-4px 0 10px">Wallets from scanned coins, ranked by realized profit on recent trades. Alerts stay off until you switch one on.</p>
+  ${sc.length ? sc.map(([a, x]) => scoutCard(a, x)).join("") : `<p class="mute pad">${S.key ? "Scoring wallets from scanned coins…" : "Add your Helius key to find top earners."}</p>`}`;
+}
+function calView() {
+  const an = analyze(), { y, m, sel } = S.cal, first = new Date(y, m, 1).getDay(), n = new Date(y, m + 1, 0).getDate();
+  const keyOf = d => `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  let tot = 0, wd = 0, ld = 0, cnt = 0, mx = 0;
+  for (let d = 1; d <= n; d++) { const x = an.byDay[keyOf(d)]; if (x) { tot += x.pnl; cnt += x.n; if (x.pnl > 0) wd++; else if (x.pnl < 0) ld++; mx = Math.max(mx, Math.abs(x.pnl)); } }
+  let cells = ""; for (let i = 0; i < first; i++) cells += `<div></div>`;
+  for (let d = 1; d <= n; d++) {
+    const k = keyOf(d), x = an.byDay[k], a = x && mx ? 0.14 + 0.36 * Math.min(1, Math.abs(x.pnl) / mx) : 0;
+    const bg = x ? (x.pnl >= 0 ? `rgba(91,242,155,${a})` : `rgba(255,92,108,${a})`) : "";
+    cells += `<div class="cd ${sel === k ? "sel" : ""}" data-act="calday" data-k="${k}" style="${bg ? "background:" + bg : ""}">${d}${x ? `<b class="${x.pnl >= 0 ? "up" : "down"}">${sgn(x.pnl)}</b>` : ""}</div>`;
+  }
+  const mname = new Date(y, m, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  const dayTrades = sel ? an.list.filter(t => dayKey(t.ts) === sel).reverse() : [];
+  return `<div class="card"><div class="row"><button class="ic sm" data-act="calprev" aria-label="Previous month">${I.back}</button><b>${mname}</b>
+      <button class="ic sm" data-act="calnext" aria-label="Next month" style="transform:scaleX(-1)">${I.back}</button></div>
+    <div class="big ${tot >= 0 ? "up" : "down"}" style="margin-top:8px">${sgn(tot)}</div>
+    <div class="mute">Realized PnL · ${cnt} closed trade${cnt === 1 ? "" : "s"} · ${wd} green day${wd === 1 ? "" : "s"}, ${ld} red</div></div>
+  <div class="cal">${["S","M","T","W","T","F","S"].map(d => `<div class="h">${d}</div>`).join("")}${cells}</div>
+  <button class="btn ghost sm" data-act="shareMonth">Share month</button>
+  ${sel ? `<h2>${sel}</h2>` + (dayTrades.length ? dayTrades.map(histRow).join("") : `<p class="mute">No trades that day.</p>`) : ""}`;
+}
+function histView() {
+  const an = analyze(); let l = [...an.list].reverse();
+  if (S.hf === "buy") l = l.filter(t => t.side === "buy"); if (S.hf === "sell") l = l.filter(t => t.side === "sell");
+  const closed = an.list.filter(t => t.pnl !== null), tot = closed.reduce((s, t) => s + t.pnl, 0) + S.arch.tot.pnl;
+  return `<div class="card"><div class="row"><div><div class="mute">All-time realized PnL</div><div class="big ${tot >= 0 ? "up" : "down"}" style="font-size:28px">${sgn(tot)}</div></div>
+    <button class="btn ghost sm" data-act="shareAll">Share</button></div></div>
+  <div class="tf">${[["all","All"],["buy","Buys"],["sell","Sells"]].map(([k, t]) => `<button class="chip ${S.hf === k ? "on" : ""}" data-act="hf" data-v="${k}">${t}</button>`).join("")}</div>
+  ${l.length ? l.map(histRow).join("") : `<p class="mute pad">${S.syncing ? "Loading your trades…" : "No trades found yet. This only sees swaps made from the wallet address you connected."}</p>`}
+  ${S.archCut ? `<p class="mute">Trades older than ${RETAIN_DAYS} days are summarized in your totals and calendar to keep the app light.</p>` : ""}
+  ${S.histDone || !S.trades.length ? "" : `<button class="btn ghost sm" data-act="older" style="width:100%">Load older trades</button>`}`;
+}
+function viewFolio() {
+  const seg = `<div class="seg">${[["hold","Holdings"],["hist","History"],["cal","Calendar"]].map(([k, l]) => `<button data-act="fseg" data-v="${k}" class="${S.ftab === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
+  if (!S.fomo) return `<div class="card"><b>Connect your Fomo wallet</b><p class="mute">Paste the public Solana address from your Fomo account. Never paste a seed phrase or private key.</p>
+    <div class="gap"><input id="fIn" placeholder="Solana address"><button class="btn sm" data-act="addFomo">Connect</button></div></div>`;
+  if (S.ftab === "hist") return seg + histView();
+  if (S.ftab === "cal") return seg + calView();
+  const p = portfolio(), d = Object.keys(S.snaps).sort(), n = d.length;
+  const dayPct = n > 1 ? (S.snaps[d[n-1]] - S.snaps[d[n-2]]) / S.snaps[d[n-2]] * 100 : null;
+  return seg + `<div class="card"><div class="mute">Fomo wallet value</div><div class="big">${usd(p.value)}</div>${dayPct !== null ? `<div class="mute">${pill(dayPct)} vs. last recorded day</div>` : ""}</div>` +
+    p.all.map(x => { const pr = price(x.mint), r = row(x.mint); return `<div class="tok" data-open="${esc(x.mint)}">${avatar(r || x)}
+      <div class="mid"><b>${esc(x.symbol)}</b><div class="mute">${x.entry > 0 ? pill((pr - x.entry) / x.entry * 100) + " since entry" : "Tap to set entry price"}</div></div>
+      <div class="rt">${usd(x.amount * pr)}</div></div>`; }).join("");
+}
+function render() {
+  const a = document.activeElement; if (a && a.tagName === "INPUT" && a.closest("#app")) return;
+  $("hr").innerHTML = `<button class="ic" data-act="settings" aria-label="Settings">${I.set}</button>`;
+  $("app").innerHTML = (S.err ? `<p class="err">${esc(S.err)}</p>` : "") + { snipes: viewSnipes, wallets: viewWallets, folio: viewFolio }[S.tab]();
+  $("nav").innerHTML = [["snipes", "Snipes" + (S.unseen ? ` (${S.unseen})` : "")], ["wallets", "Wallets"], ["folio", "Portfolio"]].map(([k, l]) => `<button data-tab="${k}" class="${S.tab === k ? "on" : ""}">${l}</button>`).join("");
+}
+
+// ---------- share cards (PnL image) ----------
+async function shareCard(c) {
+  const W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const x = cv.getContext("2d"), up = c.pnl >= 0, col = up ? "#5BF29B" : "#FF5C6C", F = "-apple-system, 'Segoe UI', Roboto, sans-serif";
+  x.fillStyle = "#0A0C0F"; x.fillRect(0, 0, W, H);
+  x.fillStyle = up ? "rgba(91,242,155,.08)" : "rgba(255,92,108,.08)"; x.fillRect(0, 0, W, 420);
+  x.fillStyle = "#F2F4F6"; x.font = `700 56px ${F}`; x.textAlign = "left"; x.fillText("Tape", 70, 120);
+  x.fillStyle = "#7C8794"; x.font = `400 36px ${F}`; x.textAlign = "right"; x.fillText(c.date, W - 70, 118);
+  x.fillStyle = "#1E252D"; x.beginPath(); x.arc(150, 330, 70, 0, Math.PI * 2); x.fill();
+  x.fillStyle = col; x.font = `700 72px ${F}`; x.textAlign = "center"; x.fillText((c.title || "?")[0].toUpperCase(), 150, 355);
+  x.fillStyle = "#F2F4F6"; x.font = `700 84px ${F}`; x.textAlign = "left"; x.fillText(c.title, 250, 322);
+  x.fillStyle = "#7C8794"; x.font = `400 38px ${F}`; x.fillText(c.kind, 250, 378);
+  x.fillStyle = col; x.textAlign = "center";
+  if (c.pct !== null && c.pct !== undefined) { x.font = `700 200px ${F}`; x.fillText((c.pct >= 0 ? "+" : "") + c.pct.toFixed(1) + "%", W / 2, 700); }
+  x.font = `700 ${c.pct !== null && c.pct !== undefined ? 96 : 190}px ${F}`; x.fillText(sgn(c.pnl), W / 2, c.pct !== null && c.pct !== undefined ? 830 : 740);
+  x.textAlign = "left"; let y = 960;
+  for (const [l, v] of c.rows) {
+    x.fillStyle = "#7C8794"; x.font = `400 40px ${F}`; x.textAlign = "left"; x.fillText(l, 90, y);
+    x.fillStyle = "#F2F4F6"; x.font = `600 42px ${F}`; x.textAlign = "right"; x.fillText(v, W - 90, y);
+    x.strokeStyle = "#222831"; x.lineWidth = 2; x.beginPath(); x.moveTo(90, y + 28); x.lineTo(W - 90, y + 28); x.stroke(); y += 84;
+  }
+  x.fillStyle = "#59626D"; x.font = `400 30px ${F}`; x.textAlign = "center"; x.fillText("Realized PnL from on-chain trades. Not financial advice.", W / 2, H - 50);
+  const blob = await new Promise(r => cv.toBlob(r, "image/png"));
+  if (!blob) { toast("Couldn't make the image."); return; }
+  const file = new File([blob], "tape-pnl.png", { type: "image/png" });
+  try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "My PnL" }); return; } }
+  catch (e) { if (e && e.name === "AbortError") return; }
+  S.img = URL.createObjectURL(blob); openSheet({ type: "img" });
+}
+const today = () => new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+function tradeCard(t) {
+  const entry = t.kq > 0 ? t.cb / t.kq : 0, exit = t.usd / t.qty;
+  return { title: sym(t.mint), kind: "Closed trade", pnl: t.pnl, pct: t.pct, date: new Date(t.ts * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
+    rows: [["Avg buy price", "$" + px(entry)], ["Sell price", "$" + px(exit)], ["Invested", usd(t.cb)], ["Returned", usd(t.cb + t.pnl)]] };
+}
+function summaryCard(title, list, all) {
+  const c = list.filter(t => t.pnl !== null), A = all ? S.arch.tot : { pnl: 0, n: 0, cb: 0, wins: 0, best: 0 };
+  const tot = c.reduce((s, t) => s + t.pnl, 0) + A.pnl, cb = c.reduce((s, t) => s + t.cb, 0) + A.cb, n = c.length + A.n;
+  const w = c.filter(t => t.pnl > 0).length + A.wins, best = Math.max(A.best, c.reduce((m, t) => Math.max(m, t.pnl), 0));
+  return { title, kind: "Realized PnL", pnl: tot, pct: cb > 0 ? tot / cb * 100 : null, date: today(),
+    rows: [["Closed trades", String(n)], ["Win rate", n ? Math.round(w / n * 100) + "%" : "-"], ["Best trade", best > 0 ? sgn(best) : "-"], ["Invested", usd(cb)]] };
+}
+
+// ---------- sheets ----------
+function renderSheet() {
+  const s = S.sheet, el = $("sheet");
+  destroyChart();
+  if (!s) { el.innerHTML = ""; document.body.style.overflow = ""; return; }
+  document.body.style.overflow = "hidden";
+  let body = "", bar = "";
+  if (s.type === "token") {
+    const t = tokOf(s.mint) || { mint: s.mint, symbol: sym(s.mint), price: 0, mcap: 0, liq: 0, vol1h: 0, chg1h: 0, chg24h: 0 };
+    const held = S.synced.find(x => x.mint === s.mint), sf = sfOf(s.mint), ins = sf?.insiders || [], c = S.calls[s.mint];
+    const jup = `https://jup.ag/swap/${SOL}-${s.mint}`, u = encodeURIComponent(jup), ref = encodeURIComponent(location.origin);
+    const ent = held ? entryOf(s.mint) : 0;
+    body = `<div class="sh"><button class="ic" data-act="close">${I.back}</button>${avatar(t)}<b>${esc(t.symbol)}</b><span id="px">${usd(t.price)}</span></div>
+    <div id="qc">${qcHTML(s.mint)}</div>
+    <div class="tf">${["1m","5m","15m","1h"].map(v => `<button class="chip ${CH.tf === v ? "on" : ""}" data-act="tf" data-v="${v}">${v}</button>`).join("")}<span style="flex:1"></span>
+      ${[["mc","MCap"],["px","Price"]].map(([k, l]) => `<button class="chip ${CH.mode === k ? "on" : ""}" data-act="cmode" data-v="${k}">${l}</button>`).join("")}</div>
+    <div id="chart"></div>
+    <p class="mute" id="cstat"></p>
+    <div class="grid"><div class="card"><div class="mute">1h</div><b id="chg">${pill(t.chg1h)}</b></div><div class="card"><div class="mute">24h</div>${pill(t.chg24h)}</div>
+      <div class="card"><div class="mute">Market cap</div><b id="mc">${usd(t.mcap)}</b></div><div class="card"><div class="mute">Liquidity</div><b id="liq">${usd(t.liq)}</b></div></div>
+    <div id="bio">${bioHTML(s.mint)}</div>
+    ${c ? `<div class="card"><div class="row"><b>${c.status === "open" ? "Buy signal" : "Sell signal · " + esc(c.why)}</b><span class="score">${c.score}</span></div>
+      <div class="mute" style="margin-top:4px">Called at ${usd(c.mcap)} MC on ${new Date(c.ts).toLocaleString()}</div>
+      <div class="mute" style="margin-top:6px">${c.reasons.map(esc).join(" · ")}</div>
+      ${c.status === "open" ? `<div class="plan">Sell signal at ${usd(c.tp / c.price * c.mcap)} MC (+${((c.tp / c.price - 1) * 100).toFixed(0)}%) · stop at ${usd(c.stop / c.price * c.mcap)} MC (${((c.stop / c.price - 1) * 100).toFixed(0)}%) · or if momentum fades</div>
+        <div class="plan">Priority fee to set: ${(S.rules.priorityFee || 0).toLocaleString()} lamports${S.solUsd ? ` (about $${((S.rules.priorityFee || 0) / 1e9 * S.solUsd).toFixed(4)})` : ""}</div>`
+        : `<div class="plan">Sold at ${usd(c.sellMcap)} MC · ${(c.sellPrice / c.price >= 1 ? "+" : "")}${((c.sellPrice / c.price - 1) * 100).toFixed(0)}% from the buy signal</div>`}</div>` : ""}
+    ${sf ? `<div class="card"><b style="color:${tone(sf.verdict)}">${sf.verdict === "ok" ? "Looks OK" : sf.verdict === "caution" ? "Caution" : "High risk"}</b>
+      <div class="mute">Risk score ${sf.score} (higher is riskier) · mint ${sf.mintRevoked ? "revoked" : "<b class=down>ACTIVE</b>"} · freeze ${sf.freezeRevoked ? "revoked" : "<b class=down>ACTIVE</b>"} · LP locked ${sf.lp.toFixed(0)}% · top 10 hold ${sf.top10.toFixed(0)}%</div></div>` : `<div class="card mute">No safety report available for this token.</div>`}
+    ${held ? `<div class="card"><div class="row"><span>You hold ${held.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })} (${usd(held.amount * t.price)})</span>
+      <input style="width:120px" inputmode="decimal" placeholder="Entry price $" value="${S.entries[s.mint] || (ent ? px(ent) : "")}" data-entry="${esc(s.mint)}"></div>
+      ${ent > 0 ? `<div class="row" style="margin-top:8px"><span class="mute">${pill((t.price - ent) / ent * 100)} since entry</span><button class="btn ghost sm" data-act="sharePos" data-m="${esc(s.mint)}">Share PnL</button></div>` : ""}</div>` : ""}
+    ${ins.length ? `<h2>Insider wallets in this token</h2>` + ins.map(i => walletCard(i.addr, [{ mint: s.mint, symbol: t.symbol, pct: i.pct }])).join("") : ""}`;
+    bar = `<div class="bar"><div><button class="btn" data-act="fomo" data-m="${esc(s.mint)}">Buy on Fomo</button>
+      <a class="btn ghost" href="https://phantom.app/ul/browse/${u}?ref=${ref}">Phantom</a></div></div>`;
+  } else if (s.type === "img") {
+    body = `<div class="sh"><button class="ic" data-act="close">${I.back}</button><b>Your PnL card</b></div>
+      <img src="${S.img}" style="width:100%;border-radius:16px" alt="PnL card"><p class="mute pad">Press and hold the image to save or share it.</p>`;
+  } else if (s.type === "settings") {
+    const sec = VK.key
+      ? `<div class="card"><b>Encrypted</b><p class="mute">Your key, wallets, trades and signals are stored encrypted (AES-256-GCM) with your passphrase. Tape locks after 5 minutes away.</p>
+        <div class="acts"><button class="btn ghost sm" data-act="lockNow">Lock now</button><button class="btn ghost sm" data-act="rmPass">Remove passphrase</button></div></div>`
+      : `<div class="card"><b>Protect your data</b><p class="mute">Set a passphrase to encrypt everything Tape saves on this phone (AES-256-GCM). If you forget it there is no recovery.</p>
+        <div class="gap"><input id="pw1" type="password" placeholder="Passphrase (8+ characters)"></div>
+        <div class="gap"><input id="pw2" type="password" placeholder="Repeat passphrase"><button class="btn sm" data-act="setPass">Encrypt</button></div></div>`;
+    body = `<div class="sh"><button class="ic" data-act="close">${I.back}</button><b>Settings</b></div>
+    ${sec}
+    <div class="card"><b>Alerts</b>
+      <div class="row" style="margin:10px 0"><span>Sound</span><button class="sw ${S.opts.sound ? "on" : ""}" data-act="opt" data-k="sound"></button></div>
+      <div class="row" style="margin-bottom:10px"><span>Keep screen on while open</span><button class="sw ${S.opts.awake ? "on" : ""}" data-act="opt" data-k="awake"></button></div>
+      <div class="acts"><button class="btn ghost sm" data-act="notif">Allow notifications</button><button class="btn ghost sm" data-act="testAlert">Send test alert</button></div>
+      <p class="mute" style="margin-top:8px">New snipes show a banner that stays until you dismiss it, beep, and badge the icon. Tape can only scan while it is open with the screen on, because iPhone pauses websites in the background. Alerts with the app closed need a small always-on server.</p></div>
+    <div class="card"><b>Mode</b><p class="mute">Auto reads the market and picks for you. Moonshot takes bigger swings: smaller coins, looser filters, sell half at 2x, trailing stop. It will lose more often.</p>
+      <div class="acts">${["auto", "safe", "balanced", "moonshot"].map(k => `<button class="btn ${S.opts.mode === k ? "" : "ghost"} sm" data-act="mode" data-k="${k}">${k === "auto" ? "Auto" : MODES[k].label}</button>`).join("")}</div></div>
+    <div class="card"><b>Helius key</b><p class="mute">Needed for your Fomo wallet, trade history, followed traders and wallet alerts. Free at dashboard.helius.dev (API Keys).</p>
+      <div class="gap"><input id="kIn" placeholder="Paste key" value="${esc(S.key)}"><button class="btn sm" data-act="saveKey">Save</button></div></div>
+    <div class="card"><b>Fomo wallet</b>${S.fomo ? `<div class="row" style="margin-top:6px"><span class="mute">${short(S.fomo)}</span><button class="link" data-act="rmFomo">Disconnect</button></div>`
+      : `<p class="mute">Public Solana address only, never a seed phrase or private key.</p><div class="gap"><input id="fIn2" placeholder="Solana address"><button class="btn sm" data-act="addFomo2">Connect</button></div>`}</div>
+    <div class="card"><b>Snipe filters</b><p class="mute">Higher quality bar means fewer, stricter signals. Every coin must also pass safety checks.</p>${[["maxMcap","Max market cap ($)"],["minLiq","Min liquidity ($)"],["minAge","Min coin age (minutes)"],["minScore","Quality bar (0 to 100)"],["stopPct","Stop loss (%, negative)"],["priorityFee","Priority fee (lamports)"]].map(([k, l]) =>
+      `<label class="r"><span>${l}</span><input inputmode="decimal" value="${S.rules[k]}" data-rule="${k}"></label>`).join("")}
+      <p class="mute" id="feeHint">${feeHint()}</p></div>
+    <div class="card mute"><b style="color:var(--tx)">What leaves your phone</b><p>Tape has no server of its own. Your key, wallets, trades and signals stay on this phone. To work it sends token addresses to Dexscreener, GeckoTerminal, RugCheck and CoinGecko, and your wallet addresses plus your Helius key to Helius. All connections use HTTPS encryption.</p>
+      <button class="link" data-act="erase">Erase all data on this phone</button></div>
+    <div class="card mute">Signals come from simple rules and safety checks only reduce risk. Low-cap coins can go to zero. Not financial advice.</div>`;
+  }
+  el.innerHTML = `<div class="sheet"><div class="in">${body}</div></div>${bar}`;
+  if (s.type === "token") { mountChart(s.mint); loadReport(s.mint); }
+}
+function openSheet(s) { S.sheet = s; renderSheet(); const sh = document.querySelector(".sheet"); if (sh) sh.scrollTop = 0; }
+function updateLive() {
+  if (S.sheet?.type !== "token") return;
+  const t = row(S.sheet.mint); if (!t) return;
+  const set = (id, h) => { const e = $(id); if (e) e.innerHTML = h; };
+  set("px", usd(t.price)); set("chg", pill(t.chg1h)); set("mc", usd(t.mcap)); set("liq", usd(t.liq));
+}
+
+// ---------- events ----------
+document.addEventListener("click", e => {
+  unlockAudio();
+  const tb = e.target.closest("[data-tab]");
+  if (tb) { S.tab = tb.dataset.tab; if (S.tab === "snipes") { S.unseen = 0; badge(); } render(); window.scrollTo(0, 0); return; }
+  const b = e.target.closest("[data-act]");
+  if (!b) { const o = e.target.closest("[data-open]"); if (o) openSheet({ type: "token", mint: o.dataset.open }); return; }
+  const v = id => (document.getElementById(id)?.value || "").trim();
+  switch (b.dataset.act) {
+    case "close": S.sheet = null; renderSheet(); break;
+    case "settings": openSheet({ type: "settings" }); return;
+    case "fseg": S.ftab = b.dataset.v; break;
+    case "hf": S.hf = b.dataset.v; break;
+    case "calprev": S.cal.m--; if (S.cal.m < 0) { S.cal.m = 11; S.cal.y--; } S.cal.sel = null; break;
+    case "calnext": S.cal.m++; if (S.cal.m > 11) { S.cal.m = 0; S.cal.y++; } S.cal.sel = null; break;
+    case "calday": S.cal.sel = S.cal.sel === b.dataset.k ? null : b.dataset.k; break;
+    case "older": b.textContent = "Loading…"; syncTrades(true).then(render); return;
+    case "check": { const el = document.getElementById("chkIn"); runCheck((el?.value || "").trim()); return; }
+    case "rmcheck": delete S.checks[b.dataset.m]; delete S.checkWhy[b.dataset.m]; persist(); break;
+    case "bn": { const m = b.dataset.m; $("banner").style.display = "none"; S.unseen = 0; badge(); if (m) openSheet({ type: "token", mint: m }); render(); return; }
+    case "bnx": $("banner").style.display = "none"; S.unseen = 0; badge(); render(); return;
+    case "opt": { const k = b.dataset.k; S.opts[k] = !S.opts[k]; persist(); b.classList.toggle("on", S.opts[k]); if (k === "awake") setWake(); return; }
+    case "mode": S.opts.mode = b.dataset.k; persist(); renderSheet(); render(); return;
+    case "testAlert": unlockAudio(); notify("Test alert. This is what a new snipe looks like.", "buy", ""); return;
+    case "follow": {
+      if (!S.key) { toast("Add your Helius key in Settings first."); return; }
+      const a = v("fuAddr"), nm = v("fuName");
+      if (!ADDR.test(a)) { toast("That doesn't look like a Solana wallet address."); return; }
+      if (Object.keys(S.follow).length >= 8) { toast("You can follow up to 8 traders."); return; }
+      const t = Math.floor(Date.now() / 1000); S.follow[a] = { name: (nm || short(a)).slice(0, 24), since: t, last: t, on: true };
+      persist(); toast(`Following ${S.follow[a].name}. You'll be alerted when they trade.`); refresh(false, true); break;
+    }
+    case "ftoggle": { const a = b.dataset.a; if (S.follow[a]) { S.follow[a].on = S.follow[a].on === false; persist(); b.classList.toggle("on", S.follow[a].on !== false); } return; }
+    case "unfollow": delete S.follow[b.dataset.a]; delete S.fmoves[b.dataset.a]; persist(); break;
+    case "setPass": { const p = v("pw1"), q = v("pw2");
+      if (p.length < 8) { toast("Use at least 8 characters."); return; } if (p !== q) { toast("The passphrases don't match."); return; }
+      toast("Encrypting…"); enableVault(p).then(() => { toast("Encrypted. Don't lose your passphrase."); renderSheet(); }); return; }
+    case "rmPass": disableVault().then(() => { toast("Passphrase removed. Data is no longer encrypted."); renderSheet(); }); return;
+    case "lockNow": lockApp(); return;
+    case "erase": if (confirm("Erase everything Tape saved on this phone?")) eraseAll(); return;
+    case "unlock": doUnlock(); return;
+    case "chretry": if (S.sheet?.type === "token") mountChart(S.sheet.mint); return;
+    case "tf": {
+      const nv = b.dataset.v; if (nv === CH.tf && CH.shown === nv) return;
+      const setBtns = () => document.querySelectorAll('[data-act="tf"]').forEach(x => x.classList.toggle("on", x.dataset.v === CH.tf));
+      CH.tf = nv; setBtns();
+      if (!CH.candle) { if (S.sheet?.type === "token") mountChart(S.sheet.mint); return; }
+      loadChart(true).then(ok => { if (ok === false && CH.tf === nv && CH.shown) { CH.tf = CH.shown; setBtns(); } });
+      return;
+    }
+    case "cmode": CH.mode = b.dataset.v; document.querySelectorAll('[data-act="cmode"]').forEach(x => x.classList.toggle("on", x.dataset.v === CH.mode)); applyChart(); try { CH.chart.timeScale().fitContent(); } catch {} return;
+    case "shareTrade": { const t = analyze().list.find(x => x.sig === b.dataset.s); if (t && t.pnl !== null) shareCard(tradeCard(t)); return; }
+    case "shareAll": shareCard(summaryCard("All time", analyze().list, true)); return;
+    case "shareMonth": { const { y, m } = S.cal, l = analyze().list.filter(t => { const d = new Date(t.ts * 1000); return d.getFullYear() === y && d.getMonth() === m; });
+      shareCard(summaryCard(new Date(y, m, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" }), l)); return; }
+    case "sharePos": { const m = b.dataset.m, h = S.synced.find(x => x.mint === m), en = entryOf(m), pr = price(m); if (!h || !(en > 0)) return;
+      shareCard({ title: sym(m), kind: "Open position", pnl: h.amount * (pr - en), pct: (pr - en) / en * 100, date: today(),
+        rows: [["Avg buy price", "$" + px(en)], ["Current price", "$" + px(pr)], ["Position value", usd(h.amount * pr)], ["Cost", usd(h.amount * en)]] }); return; }
+    case "watch": {
+      const a = b.dataset.a;
+      if (S.watch[a] !== undefined) delete S.watch[a];
+      else if (!S.key) { toast("Add your Helius key in settings first."); return; }
+      else S.watch[a] = Math.floor(Date.now() / 1000);
+      persist();
+      document.querySelectorAll(`[data-a="${a}"]`).forEach(x => x.classList.toggle("on", S.watch[a] !== undefined));
+      break;
+    }
+    case "fomo": {
+      try { navigator.clipboard.writeText(b.dataset.m); } catch {}
+      toast("Token address copied. Paste it in Fomo's search.");
+      setTimeout(() => { location.href = "https://fomo.family"; }, 1200);
+      return;
+    }
+    case "addFomo": case "addFomo2": {
+      const a = v(b.dataset.act === "addFomo" ? "fIn" : "fIn2");
+      if (!ADDR.test(a)) { toast("That doesn't look like a Solana address."); return; }
+      if (a !== S.fomo) resetHistory();
+      S.fomo = a; persist(); refresh(); if (S.sheet?.type === "settings") renderSheet(); break;
+    }
+    case "rmFomo": S.fomo = ""; S.synced = []; resetHistory(); persist(); renderSheet(); break;
+    case "saveKey": S.key = v("kIn"); persist(); toast("Saved."); refresh(); break;
+    case "notif": try { Notification.requestPermission(); } catch { toast("This browser doesn't support notifications."); } return;
+  }
+  if (document.activeElement) document.activeElement.blur(); render();
+});
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target && e.target.id === "lockPw") doUnlock(); });
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.dataset.rule) {
+    const k = t.dataset.rule; let v = Number(t.value) || 0;
+    if (k === "priorityFee") { v = Math.max(0, Math.round(v)); t.value = v; if (v > 10000000) toast("That is over 0.01 SOL per trade. Double check it."); }
+    S.rules[k] = v; persist();
+    const h = $("feeHint"); if (h) h.textContent = feeHint();
+  }
+  if (t.dataset.entry) { S.entries[t.dataset.entry] = Number(t.value) || 0; persist(); t.blur(); render(); }
+});
+let timers = [], tickN = 0, hiddenAt = 0;
+function stopTimers() { timers.forEach(clearInterval); timers = []; }
+function startApp() {
+  stopTimers(); pruneState(); render(); refresh(true, true); setWake();
+  timers.push(setInterval(() => { if (!document.hidden) { tickN++; refresh(tickN % 4 === 0, tickN % 2 === 0); } }, 10000));
+  try { if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").then(r => { REG = r; }).catch(() => {}); } catch {}
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { hiddenAt = Date.now(); flushVault(); return; }
+  if (!VK.key && hasVault()) return;
+  if (VK.key && hiddenAt && Date.now() - hiddenAt > 5 * 60e3) { lockApp(); return; }
+  refresh(true, true); setWake();
+});
+if (hasVault()) showLock(); else startApp();
+</script>
+</body>
+</html>
